@@ -41,6 +41,12 @@ namespace HungerGamesTelegram
             // for (int i = 0; i < 20; i++)
             //     Players.Add(new RunBot());
 
+            var startLocation = Locations[5,5];
+            foreach (var player in Players)
+            {
+                player.Location = startLocation;
+            }
+
             
 
             while (Players.Count > 1)
