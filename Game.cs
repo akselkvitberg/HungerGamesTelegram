@@ -6,15 +6,19 @@ using static System.Console;
 
 namespace HungerGamesTelegram
 {
-    class Game {
+    class Game 
+    {
         private readonly INotificator notificator;
 
         public List<Location> Locations { get; set; }
         public List<Actor> Players { get; set; } = new List<Actor>();
 
         public List<Actor> Results {get;set;} = new List<Actor>();
+        
+        public bool Started {get;set;} = false;
 
-        public Actor Me {get; set;}
+        public bool Completed {get;set;} = false;
+
         public int RoundDelay { get; internal set; } = 15000;
 
         public int Dimension {get;set;} = 6;
@@ -24,28 +28,26 @@ namespace HungerGamesTelegram
             this.notificator = notificator;
         }
 
-        public async Task StartGame(Actor singlePlayer) {
-            
+        public async Task StartGame() 
+        {
+            if(Started)
+                return;
+            Started = true;
+
             Locations = LocationFactory.CreateLocations(Dimension);
             
-            Me = singlePlayer;
-            Players.Add(singlePlayer);
-
-            // Debug
-            Me.Level = 10;
-
             for (int i = 0; i < 20; i++)
                 Players.Add(new RandomBot());
-            for (int i = 0; i < 20; i++)
-                Players.Add(new AttackBot());
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new AttackBot());
             for (int i = 0; i < 20; i++)
                 Players.Add(new LootBot());
-            for (int i = 0; i < 20; i++)
-                Players.Add(new Bot1());
-            for (int i = 0; i < 20; i++)
-                Players.Add(new Bot2());
-            for (int i = 0; i < 20; i++)
-                Players.Add(new RunBot());
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new Bot1());
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new Bot2());
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new RunBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);
             foreach (var player in Players)
@@ -65,8 +67,10 @@ namespace HungerGamesTelegram
                 notificator.RoundHasEnded(roundCount++);
                 if(roundCount % 3 == 0)
                 {
+                    await Task.Delay(1000);
                     LimitPlayArea();
                 }
+                await Task.Delay(2000);
             }
 
             for (int i = 0; i < Results.Count; i++)
@@ -75,12 +79,7 @@ namespace HungerGamesTelegram
             }
 
             notificator.GameHasEnded();
-
-            if(!Me.IsDead)
-            {
-                WriteLine("Vinner Vinner Kylling Vinger");
-            }
-            ReadLine();
+            Completed = true;
         }
 
         private void KillPlayersInDeadZone()

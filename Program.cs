@@ -16,7 +16,8 @@ namespace HungerGamesTelegram
             Game game = new Game(new ConsoleNotificator());
             while(true)
             {
-                await game.StartGame(new ConsolePlayer(game));
+                game.Players.Add(new ConsolePlayer(game));
+                await game.StartGame();
             }
         }
     }

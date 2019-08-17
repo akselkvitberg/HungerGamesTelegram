@@ -34,6 +34,11 @@ namespace HungerGamesTelegram
 
         internal void ParseMessage(Message message)
         {
+            if(IsDead || !Game.Started)
+            {
+                return;
+            }
+
             if(currentstate == State.None){
                 return;
             }
@@ -96,7 +101,7 @@ namespace HungerGamesTelegram
 
             ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
 
-            Write(keyboard, $"Du er her: {Location.Name}", "Hvor vil du gå?");
+            Write(keyboard, $"Du er her: *{Location.Name}*", "Hvor vil du gå?");
             
             nextLocation = null;
             currentstate = State.AskForDirection;
@@ -110,39 +115,38 @@ namespace HungerGamesTelegram
         
         public override void NoEncounterPrompt()
         {
-            Write($"Du er her: {Location.Name}", "Du ser ingen rundt deg.");
+            Write($"Du er her: *{Location.Name}*", "Du ser ingen rundt deg.", "Du leter etter våpen.");
             base.NoEncounterPrompt();
         }
 
         public override void Loot()
         {
-            Write("Du fant et bedre våpen (+2 lvl)");
             base.Loot();
+            Write("Du fant et bedre våpen **(+2 lvl)**", $"Du er level *{Level}*");
         }
 
         public override void RunAway(Actor player2)
         {
-            Write($"Du løp vekk fra {player2.Name}");
+            Write($"Du løp vekk fra *{player2.Name}*");
 
             base.RunAway(player2);
         }
 
         public override void FailAttack(Actor actor)
         {
-            Write($"{actor.Name} løp vekk.");
-            Write($"Du fant et bedre våpen (+1 lvl)");
             base.FailAttack(actor);
+            Write($"{actor.Name} løp vekk.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
         }
 
         public override void SuccessAttack(Actor actor)
         {
-            Write($"Du drepte {actor.Name}.");
             base.SuccessAttack(actor);
+            Write($"Du drepte {actor.Name}.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
         }
 
         public override void Die(Actor actor)
         {
-            Write($"{actor.Name} (lvl {actor.Level}) drepte deg.", "Spillet er over.");
+            Write($"*{actor.Name}* (level **{actor.Level}**) drepte deg.", "*Spillet er over.*");
             base.Die(actor);
             if(Died != null){
                 Died(this);
@@ -151,8 +155,8 @@ namespace HungerGamesTelegram
 
         public override void Share(Actor actor)
         {
-            Write($"Du og {actor.Name} delte på godene (+1 lvl)");
             base.Share(actor);
+            Write($"Du og *{actor.Name}* delte på godene **(+1 lvl)**", $"Du er level *{Level}*");
         }
     }
 }

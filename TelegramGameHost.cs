@@ -12,38 +12,47 @@ namespace HungerGamesTelegram
 
         Dictionary<long, TelegramPlayer> players = new Dictionary<long, TelegramPlayer>();
 
+        Game currentGame;
+
         public void Start() {
             var key = File.ReadAllText("botkey.key");
             _botClient = new TelegramBotClient(key);
             _botClient.OnMessage += Bot_OnMessage;
-            //_botClient.OnUpdate += Bot_Update;
             
             _botClient.StartReceiving();
         }
 
         private void Bot_OnMessage(object sender, MessageEventArgs e)
         {
-            Console.WriteLine(e.Message.Text);
+            Console.WriteLine(e.Message.From?.FirstName + "> " + e.Message.Text);
 
+
+            if (e.Message.Text == "/start") {
+                currentGame?.StartGame();
+            }
+            
             if (players.ContainsKey(e.Message.Chat.Id))
             {
                 players[e.Message.Chat.Id].ParseMessage(e.Message);
                 return;
             }
 
-            if(e.Message.Text == "/join"){
-                Game game = new Game(new TelegramNotificator(_botClient));
-                TelegramPlayer player = new TelegramPlayer(game, e.Message.Chat.Id, _botClient);
-                players.Add(e.Message.Chat.Id, player);
-                player.Died += playerDied;
-                game.StartGame(player);
-            }
-        }
+            if(e.Message.Text == "/join")
+            {
+                if(currentGame == null){
+                    currentGame = new Game(new TelegramNotificator(_botClient));
+                }
+                if(currentGame.Started)
+                {
+                    // already started, please wait
+                    _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent");
+                }
 
-        private void playerDied(TelegramPlayer obj)
-        {
-            players.Remove(obj.Id);
-            obj.Died -= playerDied;
+                TelegramPlayer player = new TelegramPlayer(currentGame, e.Message.Chat.Id, _botClient);
+                players.Add(e.Message.Chat.Id, player);
+                currentGame.Players.Add(player);
+            }
+
         }
     }
 
@@ -58,6 +67,7 @@ namespace HungerGamesTelegram
 
         public void GameAreaIsReduced()
         {
+            //_botClient.SendTextMessageAsync()
         }
 
         public void GameHasEnded()
