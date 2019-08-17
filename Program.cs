@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using static System.Console;
@@ -17,7 +17,7 @@ namespace HungerGamesTelegram
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hunger Games");
+            WriteLine("Hunger Games");
 
             for (int i = 0; i < 12*12; i++)
             {
@@ -38,10 +38,18 @@ namespace HungerGamesTelegram
                 Players.Add(p);
             }
 
-            while (!Me.IsDead)
+            while (Players.Count > 1)
             {
                 DoRound();
             }
+
+            if(!Me.IsDead)
+            {
+                WriteLine("Du vant!");
+            }
+            else
+                WriteLine("Du tapte");
+            ReadLine();
         }
 
         private static void DoRound()
@@ -234,10 +242,13 @@ namespace HungerGamesTelegram
     {
         public override EncounterReply Encounter(Actor actor)
         {
-            Console.WriteLine($"Du møter på {actor.Name}");
-            Console.WriteLine($"Hva vil du gjøre?");
+            WriteLine();
+            WriteLine($"Du møter på {actor.Name}");
+            WriteLine($"Du er level {Level}");
+            WriteLine($"Hva vil du gjøre?");
+            Write("> ");
 
-            var answer = Console.ReadLine();
+            var answer = ReadLine();
 
             switch (answer.ToLower())
             {
@@ -255,44 +266,45 @@ namespace HungerGamesTelegram
 
         public override EncounterReply NoEncounter()
         {
-            Console.WriteLine("Du er alene");
+            WriteLine("Du ser ingen rundt deg.");
             return EncounterReply.Loot;
         }
 
         public override void Loot()
         {
-            Console.WriteLine("Du mø");
+            WriteLine("Du fant et bedre våpen (+2 lvl)");
             base.Loot();
         }
 
         public override void RunAway(Actor player2)
         {
-            Console.WriteLine("Du slapp unna");
+            WriteLine($"Du løp vekk fra {player2.Name}");
             base.RunAway(player2);
         }
 
         public override void FailAttack(Actor actor)
         {
-            Console.WriteLine($"{actor.Name} løp vekk. Du fant våpen.");
+            WriteLine($"{actor.Name} løp vekk.");
+            WriteLine($"Du fant et bedre våpen (+1 lvl)");
             base.FailAttack(actor);
         }
 
         public override void SuccessAttack(Actor actor)
         {
-            Console.WriteLine($"Du drepte {actor.Name}");
+            WriteLine($"Du drepte {actor.Name}.");
             base.SuccessAttack(actor);
         }
 
         public override void Die(Actor actor)
         {
-            Console.WriteLine($"Du døde");
+            WriteLine($"{actor.Name} (lvl {actor.Level}) drepte deg");
+            WriteLine($"Du døde");
             base.Die(actor);
-
         }
 
         public override void Share(Actor actor)
         {
-            Console.WriteLine($"Du og {actor.Name} delte på godene");
+            WriteLine($"Du og {actor.Name} delte på godene (+1 lvl)");
             base.Share(actor);
         }
     }
