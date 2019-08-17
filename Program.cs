@@ -216,7 +216,7 @@ namespace HungerGamesTelegram
 
         public virtual void SuccessAttack(Actor actor)
         {
-            Level += 2;
+            Level += 1;
         }
 
         public virtual void Die(Actor actor)
