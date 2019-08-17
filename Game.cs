@@ -116,7 +116,6 @@ namespace HungerGamesTelegram
                     Results.Add(encounter.Player2);
                 }
             }
-            
         }
 
         private List<Encounter> GetLocationEncounters(List<Actor> locationPlayers)

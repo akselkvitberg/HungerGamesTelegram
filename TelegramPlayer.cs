@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using static System.Console;
 
 namespace HungerGamesTelegram
@@ -8,7 +11,7 @@ namespace HungerGamesTelegram
 
     class TelegramPlayer : Actor
     {
-        long Id;
+        public long Id {get;}
         private readonly ITelegramBotClient _client;
 
         public TelegramPlayer(long id, ITelegramBotClient client)
@@ -16,6 +19,8 @@ namespace HungerGamesTelegram
             Id = id;
             _client = client;
         }
+
+        public event Action<TelegramPlayer> Died;
 
         enum State {
             AskForDirection,
@@ -55,24 +60,42 @@ namespace HungerGamesTelegram
             }
         }
 
+        public void Write(params string[] message)
+        {
+            _client.SendTextMessageAsync(Id, string.Join("\n", message), ParseMode.Markdown, true, false, 0, new ReplyKeyboardRemove());
+        }
+
+        public void Write(IReplyMarkup markup, params string[] message)
+        {
+            _client.SendTextMessageAsync(Id, string.Join("\n", message), ParseMode.Markdown, true, false, 0, markup);
+        }
+
         public override void EncounterPrompt(Actor actor)
         {
-            _client.SendTextMessageAsync(Id,
-            $"Du møter på {actor.Name}\n"+
-            "Du er level {Level}\n"+
-            "Hva vil du gjøre?");
+            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(new List<KeyboardButton>(){
+                new KeyboardButton("attack"),
+                new KeyboardButton("loot"),
+                new KeyboardButton("run"),
+            },true, true);
+
+            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du møter på *{actor.Name}*", $"Du er level *{Level}*", "Hva vil du gjøre?");
+
             currentstate = State.AskForAction;
+            EncounterAction = EncounterReply.Loot;
         }
 
         public override void MovePrompt()
         {
-            _client.SendTextMessageAsync(Id,
-            $"Du er her: {Location.Name}\n"+
-            "Hvor vil du gå?");
+            List<KeyboardButton> directions = new List<KeyboardButton>();
             foreach (var location in Location.Directions)
             {
-                //WriteLine($"> {location.Key}: {location.Value.Name}");
+                directions.Add(new KeyboardButton($"{location.Key}"));
             }
+
+            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
+
+            Write(keyboard, $"Du er her: {Location.Name}", "Hvor vil du gå?");
+            
             nextLocation = null;
             currentstate = State.AskForDirection;
         }
@@ -82,47 +105,51 @@ namespace HungerGamesTelegram
         {
             Move(nextLocation);            
         }
+        
         public override void NoEncounterPrompt()
         {
-            _client.SendTextMessageAsync(Id,"Du ser ingen rundt deg.");
+            Write($"Du er her: {Location.Name}", "Du ser ingen rundt deg.");
+            base.NoEncounterPrompt();
         }
 
         public override void Loot()
         {
-            _client.SendTextMessageAsync(Id,"Du fant et bedre våpen (+2 lvl)");
+            Write("Du fant et bedre våpen (+2 lvl)");
             base.Loot();
         }
 
         public override void RunAway(Actor player2)
         {
-            _client.SendTextMessageAsync(Id,$"Du løp vekk fra {player2.Name}");
+            Write($"Du løp vekk fra {player2.Name}");
 
             base.RunAway(player2);
         }
 
         public override void FailAttack(Actor actor)
         {
-            _client.SendTextMessageAsync(Id,$"{actor.Name} løp vekk.");
-            _client.SendTextMessageAsync(Id,$"Du fant et bedre våpen (+1 lvl)");
+            Write($"{actor.Name} løp vekk.");
+            Write($"Du fant et bedre våpen (+1 lvl)");
             base.FailAttack(actor);
         }
 
         public override void SuccessAttack(Actor actor)
         {
-            _client.SendTextMessageAsync(Id,$"Du drepte {actor.Name}.");
+            Write($"Du drepte {actor.Name}.");
             base.SuccessAttack(actor);
         }
 
         public override void Die(Actor actor)
         {
-            _client.SendTextMessageAsync(Id,$"{actor.Name} (lvl {actor.Level}) drepte deg");
-            _client.SendTextMessageAsync(Id,$"Du døde");
+            Write($"{actor.Name} (lvl {actor.Level}) drepte deg.", "Spillet er over.");
             base.Die(actor);
+            if(Died != null){
+                Died(this);
+            }
         }
 
         public override void Share(Actor actor)
         {
-            _client.SendTextMessageAsync(Id,$"Du og {actor.Name} delte på godene (+1 lvl)");
+            Write($"Du og {actor.Name} delte på godene (+1 lvl)");
             base.Share(actor);
         }
     }
