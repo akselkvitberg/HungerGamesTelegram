@@ -55,6 +55,8 @@ namespace HungerGamesTelegram
                 player.Location = startLocation;
             }
 
+            notificator.GameHasStarted();
+            
             int roundCount = 1;
             while (Players.Count > 1)
             {
@@ -78,7 +80,7 @@ namespace HungerGamesTelegram
                 WriteLine($"{Results.Count - i}: {Results[i].GetType().Name} ({Results[i].Level})");
             }
 
-            notificator.GameHasEnded();
+            notificator.GameHasEnded(Results);
             Completed = true;
         }
 
@@ -190,11 +192,11 @@ namespace HungerGamesTelegram
         }
     }
 
-    public interface INotificator
+    interface INotificator
     {
          void GameHasStarted();
 
-         void GameHasEnded();
+         void GameHasEnded(List<Actor> results);
 
          void RoundHasEnded(int round);
 

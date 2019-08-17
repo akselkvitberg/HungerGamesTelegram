@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using static System.Console;
 
@@ -29,7 +30,7 @@ namespace HungerGamesTelegram
             WriteLine("Området har blitt begrenset");
         }
 
-        public void GameHasEnded()
+        public void GameHasEnded(List<Actor> results)
         {
             WriteLine("Spillet er slutt");
         }

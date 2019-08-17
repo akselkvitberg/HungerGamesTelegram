@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HungerGamesTelegram
 {
-    class TelegramGameHost {
+    class TelegramGameHost : INotificator{
         private ITelegramBotClient _botClient;
 
         Dictionary<long, TelegramPlayer> players = new Dictionary<long, TelegramPlayer>();
@@ -40,7 +41,7 @@ namespace HungerGamesTelegram
             if(e.Message.Text == "/join")
             {
                 if(currentGame == null){
-                    currentGame = new Game(new TelegramNotificator(_botClient));
+                    currentGame = new Game(this);
                 }
                 if(currentGame.Started)
                 {
@@ -48,34 +49,41 @@ namespace HungerGamesTelegram
                     _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent");
                 }
 
-                TelegramPlayer player = new TelegramPlayer(currentGame, e.Message.Chat.Id, _botClient);
+                TelegramPlayer player = new TelegramPlayer(currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
                 players.Add(e.Message.Chat.Id, player);
                 currentGame.Players.Add(player);
             }
-
-        }
-    }
-
-    internal class TelegramNotificator : INotificator
-    {
-        private ITelegramBotClient _botClient;
-
-        public TelegramNotificator(ITelegramBotClient botClient)
-        {
-            _botClient = botClient;
         }
 
         public void GameAreaIsReduced()
         {
-            //_botClient.SendTextMessageAsync()
+            foreach (var player in players)
+            {
+                if(!player.Value.IsDead){
+                    _botClient.SendTextMessageAsync(player.Value.Id, "Området er redusert", replyMarkup: new ReplyKeyboardRemove());
+                }
+            }
         }
 
-        public void GameHasEnded()
+        public void GameHasEnded(List<Actor> results)
         {
+            string str = "*Resultater*\n===\n---\n";
+            for (int i = 0; i < results.Count; i++)
+            {
+                str += $"*{results.Count -1}.* {results[i].Name}";
+            }
+            foreach (var player in players)
+            {
+                _botClient.SendTextMessageAsync(player.Value.Id, str, Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
+            }
         }
 
         public void GameHasStarted()
         {
+            foreach (var player in players)
+            {
+                _botClient.SendTextMessageAsync(player.Value.Id, "Runden har startet!\n3... 2... 1... GO", Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
+            }
         }
 
         public void RoundHasEnded(int round)

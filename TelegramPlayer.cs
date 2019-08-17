@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -15,11 +16,13 @@ namespace HungerGamesTelegram
         public long Id {get;}
         private readonly ITelegramBotClient _client;
 
-        public TelegramPlayer(Game game, long id, ITelegramBotClient client)
+        public TelegramPlayer(Game game, long id, ITelegramBotClient client, string name)
         {
             Game = game;
             Id = id;
             _client = client;
+            Name = name;
+            
         }
 
         public event Action<TelegramPlayer> Died;
@@ -94,14 +97,19 @@ namespace HungerGamesTelegram
         public override void MovePrompt()
         {
             List<KeyboardButton> directions = new List<KeyboardButton>();
+            List<string> locations = new List<string>();
             foreach (var location in Location.Directions)
             {
-                directions.Add(new KeyboardButton($"{location.Key}"));
+                if(!location.Value.IsDeadly)
+                {
+                    directions.Add(new KeyboardButton($"{location.Key}"));
+                }
+                locations.Add($"*{location.Key}*: {location.Value.Name}");
             }
 
             ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
 
-            Write(keyboard, $"Du er her: *{Location.Name}*", "Hvor vil du gå?");
+            Write(keyboard, $"Du er her: *{Location.Name}*", string.Join("\n", locations), "Hvor vil du gå?");
             
             nextLocation = null;
             currentstate = State.AskForDirection;
@@ -141,7 +149,7 @@ namespace HungerGamesTelegram
         public override void SuccessAttack(Actor actor)
         {
             base.SuccessAttack(actor);
-            Write($"Du drepte {actor.Name}.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
+            Write($"Du drepte *{actor.Name}*.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
         }
 
         public override void Die(Actor actor)
