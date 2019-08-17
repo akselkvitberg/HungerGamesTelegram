@@ -11,9 +11,9 @@ namespace HungerGamesTelegram
         public static Location[] Locations { get; set; } = new Location[12 * 12];
         public static List<Actor> Players { get; set; } = new List<Actor>();
 
-        public static Player Me = new Player();
+        public static List<Actor> Results {get;set;} = new List<Actor>();
 
-        private static bool isDead;
+        public static ConsolePlayer Me {get; set;} = new ConsolePlayer();
 
         static void Main(string[] args)
         {
@@ -28,27 +28,43 @@ namespace HungerGamesTelegram
                 Locations[i] = l;
             }
 
-            Players.Add(Me);
-            for (int i = 0; i < 100; i++)
-            {
-                Actor p = new Actor()
-                {
-                    Name = "Player " + i
-                };
-                Players.Add(p);
-            }
+            //Players.Add(Me);
+
+            for (int i = 0; i < 20; i++)
+                Players.Add(new RandomBot());
+            for (int i = 0; i < 20; i++)
+                Players.Add(new AttackBot());
+            for (int i = 0; i < 20; i++)
+                Players.Add(new LootBot());
+            for (int i = 0; i < 20; i++)
+                Players.Add(new Bot1());
+            for (int i = 0; i < 20; i++)
+                Players.Add(new Bot2());
+            // Todo: When we have shrinking size, add this
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new RunBot());
 
             while (Players.Count > 1)
             {
                 DoRound();
             }
 
-            if(!Me.IsDead)
+            for (int i = 0; i < Results.Count; i++)
             {
-                WriteLine("Du vant!");
+                WriteLine($"{Results.Count - i}: {Results[i].GetType().Name} ({Results[i].Level})");
             }
-            else
-                WriteLine("Du tapte");
+
+            // for (int i = Results.Count; i >= 1; i--)
+            // {
+            //     WriteLine($"{i}: {Results[i-1].GetType().Name}");
+            // }
+
+            // if(!Me.IsDead)
+            // {
+            //     WriteLine("Du vant!");
+            // }
+            // else
+            //     WriteLine("Du tapte");
             ReadLine();
         }
 
@@ -80,10 +96,12 @@ namespace HungerGamesTelegram
                 if (encounter.Player1.IsDead)
                 {
                     Players.Remove(encounter.Player1);
+                    Results.Add(encounter.Player1);
                 }
                 if (encounter.Player2?.IsDead == true)
                 {
                     Players.Remove(encounter.Player2);
+                    Results.Add(encounter.Player2);
                 }
             }
         }
@@ -184,128 +202,5 @@ namespace HungerGamesTelegram
     {
         public string Name { get; set; }
         public List<Actor> Players { get; } = new List<Actor>();
-    }
-
-    class Actor
-    {
-        private static Random random = new Random();
-        public Guid PlayerId { get; set; } = Guid.NewGuid();
-        public Location Location { get; set; }
-        public int Level { get; set; } = 1;
-        public string Name { get; set; }
-        public string PhoneNumber { get; set; }
-        public bool IsDead { get; set; }
-
-        public virtual EncounterReply Encounter(Actor actor)
-        {
-            return (EncounterReply)random.Next(0, 3);
-            //return EncounterReply.Loot;
-        }
-
-        public virtual void Share(Actor actor)
-        {
-            Level++;
-        }
-
-        public virtual void FailAttack(Actor actor)
-        {
-            Level += 2;
-        }
-
-        public virtual void RunAway(Actor player2)
-        {
-            
-        }
-
-        public virtual void Loot()
-        {
-            Level += 2;
-        }
-
-        public virtual void SuccessAttack(Actor actor)
-        {
-            Level += 1;
-        }
-
-        public virtual void Die(Actor actor)
-        {
-            IsDead = true;
-        }
-
-        public virtual EncounterReply NoEncounter()
-        {
-            return EncounterReply.Loot;
-        }
-    }
-
-    class Player : Actor
-    {
-        public override EncounterReply Encounter(Actor actor)
-        {
-            WriteLine();
-            WriteLine($"Du møter på {actor.Name}");
-            WriteLine($"Du er level {Level}");
-            WriteLine($"Hva vil du gjøre?");
-            Write("> ");
-
-            var answer = ReadLine();
-
-            switch (answer.ToLower())
-            {
-                case "attack":
-                    return EncounterReply.Attack;
-                case "loot":
-                    return EncounterReply.Loot;
-                case "run":
-                    return EncounterReply.RunAway;
-            }
-            //return (EncounterReply)Enum.Parse(typeof(EncounterReply),answer);
-
-            return EncounterReply.Loot;
-        }
-
-        public override EncounterReply NoEncounter()
-        {
-            WriteLine("Du ser ingen rundt deg.");
-            return EncounterReply.Loot;
-        }
-
-        public override void Loot()
-        {
-            WriteLine("Du fant et bedre våpen (+2 lvl)");
-            base.Loot();
-        }
-
-        public override void RunAway(Actor player2)
-        {
-            WriteLine($"Du løp vekk fra {player2.Name}");
-            base.RunAway(player2);
-        }
-
-        public override void FailAttack(Actor actor)
-        {
-            WriteLine($"{actor.Name} løp vekk.");
-            WriteLine($"Du fant et bedre våpen (+1 lvl)");
-            base.FailAttack(actor);
-        }
-
-        public override void SuccessAttack(Actor actor)
-        {
-            WriteLine($"Du drepte {actor.Name}.");
-            base.SuccessAttack(actor);
-        }
-
-        public override void Die(Actor actor)
-        {
-            WriteLine($"{actor.Name} (lvl {actor.Level}) drepte deg");
-            WriteLine($"Du døde");
-            base.Die(actor);
-        }
-
-        public override void Share(Actor actor)
-        {
-            WriteLine($"Du og {actor.Name} delte på godene (+1 lvl)");
-            base.Share(actor);
-        }
     }
 }
