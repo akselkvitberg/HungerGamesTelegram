@@ -65,6 +65,12 @@ namespace HungerGamesTelegram
 
     abstract class Bot : Actor
     {
+
+        public Bot() 
+        {
+            this.Name = this.GetType().Name;
+        }
+
         public override void Move() 
         {
             var nextLocation = Location.Directions.Values.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();

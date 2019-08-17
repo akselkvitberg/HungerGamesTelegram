@@ -25,7 +25,10 @@ namespace HungerGamesTelegram
             {
                 for (int x = 0; x < dimension; x++)
                 {
-                    locations[x,y] = new Location();
+                    locations[x,y] = new Location()
+                    {
+                        Name = $"Koordinat {x}, {y}"
+                    };
                 }
             }
 
