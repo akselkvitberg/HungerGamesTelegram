@@ -4,7 +4,7 @@ namespace HungerGamesTelegram
 {
     class ConsolePlayer : Actor
     {
-        public override EncounterReply Encounter(Actor actor)
+        public override void EncounterPrompt(Actor actor)
         {
             WriteLine();
             WriteLine($"Du møter på {actor.Name}");
@@ -14,20 +14,23 @@ namespace HungerGamesTelegram
 
             var answer = ReadLine();
 
+            EncounterAction = EncounterReply.Loot;
             switch (answer.ToLower())
             {
                 case "attack":
-                    return EncounterReply.Attack;
+                    EncounterAction = EncounterReply.Attack;
+                    break;
                 case "loot":
-                    return EncounterReply.Loot;
+                    EncounterAction =  EncounterReply.Loot;
+                    break;
                 case "run":
-                    return EncounterReply.RunAway;
+                    EncounterAction =  EncounterReply.RunAway;
+                    break;
             }
-
-            return EncounterReply.Loot;
         }
 
-        public override void Move()
+        Location nextLocation = null;
+        public override void MovePrompt()
         {
             WriteLine($"Du er her: {Location.Name}");
             WriteLine("Hvor vil du gå?");
@@ -42,20 +45,24 @@ namespace HungerGamesTelegram
 
             if(Location.Directions.ContainsKey(input))
             {
-                Move(Location.Directions[input]);
+                nextLocation = Location.Directions[input];
+                //Move(Location.Directions[input]);
             }
             else
             {
+                nextLocation = null;
                 // stay for now. Implement retry logic.
             }
-
-
-            
         }
-        public override EncounterReply NoEncounter()
+
+        public override void Move()
+        {
+            Move(nextLocation);
+        }
+        public override void NoEncounterPrompt()
         {
             WriteLine("Du ser ingen rundt deg.");
-            return EncounterReply.Loot;
+            EncounterAction = EncounterReply.Loot;
         }
 
         public override void Loot()

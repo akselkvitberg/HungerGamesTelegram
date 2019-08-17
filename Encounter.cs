@@ -7,12 +7,15 @@ namespace HungerGamesTelegram
         public Actor Player1 { get; set; }
         public Actor Player2 { get; set; }
 
+        public virtual void Prompt()
+        {
+            Player1.EncounterPrompt(Player2);
+            Player2.EncounterPrompt(Player1);
+        }
+
         public virtual void RunEncounter()
         {
-            var reply1 = Player1.Encounter(Player2);
-            var reply2 = Player2.Encounter(Player1);
-
-            switch ((reply1, reply2))
+            switch ((Player1.EncounterAction, Player2.EncounterAction))
             {
                 case (EncounterReply.Attack, EncounterReply.Attack):
                     ResolveAttack(Player1, Player2);
@@ -72,6 +75,8 @@ namespace HungerGamesTelegram
                 player2.SuccessAttack(player1);
             }
         }
+
+        
     }
 
     enum EncounterReply
@@ -83,10 +88,15 @@ namespace HungerGamesTelegram
 
     class NonEncounter : Encounter
     {
+
+        public override void Prompt()
+        {
+            Player1.NoEncounterPrompt();
+        }
+
         public override void RunEncounter()
         {
-            var reply = Player1.NoEncounter();
-            if (reply == EncounterReply.Loot)
+            if (Player1.EncounterAction == EncounterReply.Loot)
             {
                 Player1.Loot();
             }

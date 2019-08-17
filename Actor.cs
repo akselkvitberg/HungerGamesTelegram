@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HungerGamesTelegram
 {
@@ -12,12 +13,13 @@ namespace HungerGamesTelegram
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
         public bool IsDead { get; set; }
+        public EncounterReply EncounterAction { get; internal set; }
 
-        public abstract EncounterReply Encounter(Actor actor);
+        public abstract void EncounterPrompt(Actor actor);
 
-        public virtual EncounterReply NoEncounter()
+        public virtual void NoEncounterPrompt()
         {
-            return EncounterReply.Loot;
+            EncounterAction = EncounterReply.Loot;
         }
 
         public virtual void Share(Actor actor)
@@ -50,6 +52,7 @@ namespace HungerGamesTelegram
             IsDead = true;
         }
 
+        public abstract void MovePrompt();
         public abstract void Move();
 
         internal void Move(Location nextLocation)
@@ -70,6 +73,11 @@ namespace HungerGamesTelegram
         {
             this.Name = this.GetType().Name;
         }
+        
+        public override void MovePrompt()
+        {
+
+        }
 
         public override void Move() 
         {
@@ -79,45 +87,48 @@ namespace HungerGamesTelegram
     }
     class RandomBot : Bot
     {
-        public override EncounterReply Encounter(Actor actor) => (EncounterReply)random.Next(0, 3);
+        public override void EncounterPrompt(Actor actor) 
+        {
+             EncounterAction = (EncounterReply)random.Next(0, 3);
+        }
     }
 
     class AttackBot : Bot
     {
-        public override EncounterReply Encounter(Actor actor) => EncounterReply.Attack;
+        public override void EncounterPrompt(Actor actor)  {EncounterAction = EncounterReply.Attack;}
     }
 
     class RunBot : Bot
     {
-        public override EncounterReply Encounter(Actor actor) => EncounterReply.RunAway;
+        public override void EncounterPrompt(Actor actor) {EncounterAction = EncounterReply.RunAway;}
     }
 
     class LootBot : Bot
     {
-        public override EncounterReply Encounter(Actor actor) => EncounterReply.Loot;
+        public override void EncounterPrompt(Actor actor) {EncounterAction = EncounterReply.Loot;}
     }
 
     class Bot1 : Bot
     {
-        public override EncounterReply Encounter(Actor actor) 
+        public override void EncounterPrompt(Actor actor) 
         {
             if(Level > 5)
             {
-                return EncounterReply.Attack;
+                EncounterAction = EncounterReply.Attack;
             }
-            return EncounterReply.Loot;
+            else EncounterAction = EncounterReply.Loot;
         }
     }
 
     class Bot2 : Bot
     {
-        public override EncounterReply Encounter(Actor actor) 
+        public override void EncounterPrompt(Actor actor) 
         {
             if(Level % 2 == 0)
             {
-                return EncounterReply.Attack;
+                EncounterAction = EncounterReply.Attack;
             }
-            return EncounterReply.Loot;
+            else EncounterAction = EncounterReply.Loot;
         }
     }
 }
