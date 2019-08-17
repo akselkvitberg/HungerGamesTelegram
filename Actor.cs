@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace HungerGamesTelegram
 {
@@ -49,29 +50,48 @@ namespace HungerGamesTelegram
             IsDead = true;
         }
 
+        public abstract void Move();
+
+        internal void Move(Location nextLocation)
+        {
+            if (nextLocation != null)
+            {
+                Location.Players.Remove(this);
+                nextLocation.Players.Add(this);
+                Location = nextLocation;
+            }
+        }
     }
 
-    class RandomBot : Actor
+    abstract class Bot : Actor
+    {
+        public override void Move() 
+        {
+            var nextLocation = Location.Directions.Values.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();
+            base.Move(nextLocation);
+        }
+    }
+    class RandomBot : Bot
     {
         public override EncounterReply Encounter(Actor actor) => (EncounterReply)random.Next(0, 3);
     }
 
-    class AttackBot : Actor
+    class AttackBot : Bot
     {
         public override EncounterReply Encounter(Actor actor) => EncounterReply.Attack;
     }
 
-    class RunBot : Actor
+    class RunBot : Bot
     {
         public override EncounterReply Encounter(Actor actor) => EncounterReply.RunAway;
     }
 
-    class LootBot : Actor
+    class LootBot : Bot
     {
         public override EncounterReply Encounter(Actor actor) => EncounterReply.Loot;
     }
 
-    class Bot1 : Actor
+    class Bot1 : Bot
     {
         public override EncounterReply Encounter(Actor actor) 
         {
@@ -83,7 +103,7 @@ namespace HungerGamesTelegram
         }
     }
 
-    class Bot2 : Actor
+    class Bot2 : Bot
     {
         public override EncounterReply Encounter(Actor actor) 
         {

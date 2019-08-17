@@ -7,6 +7,7 @@ namespace HungerGamesTelegram
         public string Name { get; set; }
         public List<Actor> Players { get; } = new List<Actor>();
         public Dictionary<string, Location> Directions {get;} = new Dictionary<string, Location>();
+        public bool IsDeadly {get;set;} = false;
     }
 
     static class LocationFactory

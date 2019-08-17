@@ -45,7 +45,8 @@ namespace HungerGamesTelegram
 
             while (Players.Count > 1)
             {
-                DoRound();
+                DoMovements();
+                DoEncounters();
             }
 
             for (int i = 0; i < Results.Count; i++)
@@ -67,7 +68,15 @@ namespace HungerGamesTelegram
             ReadLine();
         }
 
-        private static void DoRound()
+        private static void DoMovements()
+        {
+            foreach (var actor in Players)
+            {
+                actor.Move();
+            }
+        }
+
+        private static void DoEncounters()
         {
             var players = new Stack<Actor>(Players.OrderBy(x => Guid.NewGuid()).ToList());
 

@@ -27,6 +27,31 @@ namespace HungerGamesTelegram
             return EncounterReply.Loot;
         }
 
+        public override void Move()
+        {
+            WriteLine($"Du er her: {Location.Name}");
+            WriteLine("Hvor vil du gå?");
+
+
+            foreach (var location in Location.Directions)
+            {
+                WriteLine($"> {location.Key}: {location.Value.Name}");
+            }
+            Write("> ");
+            var input = ReadLine();
+
+            if(Location.Directions.ContainsKey(input))
+            {
+                Move(Location.Directions[input]);
+            }
+            else
+            {
+                // stay for now. Implement retry logic.
+            }
+
+
+            
+        }
         public override EncounterReply NoEncounter()
         {
             WriteLine("Du ser ingen rundt deg.");
