@@ -84,10 +84,20 @@ namespace HungerGamesTelegram
 
         private static void DoEncounters()
         {
-            var players = new Stack<Actor>(Players.OrderBy(x => Guid.NewGuid()).ToList());
+            var locations = Players.GroupBy(x => x.Location);
+
+            foreach (var location in locations)
+            {
+                RunLocationEncounters(location.ToList());
+            }
+        }
+
+        private static void RunLocationEncounters(List<Actor> locationPlayers)
+        {
+            var players = new Stack<Actor>(locationPlayers.OrderBy(x => Guid.NewGuid()).ToList());
 
             List<Encounter> encounters = new List<Encounter>();
-            
+
             while (players.Count > 1)
             {
                 var p1 = players.Pop();
@@ -101,7 +111,7 @@ namespace HungerGamesTelegram
 
             if (players.Count == 1)
             {
-                encounters.Add(new NonEncounter(){Player1 = players.Pop()});
+                encounters.Add(new NonEncounter() { Player1 = players.Pop() });
             }
 
             foreach (var encounter in encounters)
