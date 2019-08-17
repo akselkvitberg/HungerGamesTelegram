@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.Console;
 
 namespace HungerGamesTelegram
 {
@@ -93,7 +94,7 @@ namespace HungerGamesTelegram
             switch ((reply1, reply2))
             {
                 case (EncounterReply.Attack, EncounterReply.Attack):
-                    
+                    ResolveAttack(Player1, Player2);
                     break;
                 case (EncounterReply.Loot, EncounterReply.Loot):
                     Player1.Share(Player2);
@@ -130,6 +131,24 @@ namespace HungerGamesTelegram
                     Player1.Die(Player2);
                     Player2.SuccessAttack(Player1);
                     break;
+            }
+        }
+
+        private static Random random = new Random();
+
+        private void ResolveAttack(Actor player1, Actor player2)
+        {
+            var diff = 0.5 - ((player1.Level - player2.Level) / 10.0);
+            
+            if(random.NextDouble() > diff)
+            {
+                player1.SuccessAttack(player2);
+                player2.Die(player1);
+            }
+            else 
+            {
+                player1.Die(player2);
+                player2.SuccessAttack(player1);
             }
         }
     }
