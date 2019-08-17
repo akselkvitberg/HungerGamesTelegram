@@ -32,9 +32,9 @@ namespace HungerGamesTelegram
             }
 
             if(e.Message.Text == "/join"){
-                TelegramPlayer player = new TelegramPlayer(e.Message.Chat.Id, _botClient);
+                Game game = new Game(new TelegramNotificator(_botClient));
+                TelegramPlayer player = new TelegramPlayer(game, e.Message.Chat.Id, _botClient);
                 players.Add(e.Message.Chat.Id, player);
-                Game game = new Game();
                 player.Died += playerDied;
                 game.StartGame(player);
             }
@@ -44,6 +44,32 @@ namespace HungerGamesTelegram
         {
             players.Remove(obj.Id);
             obj.Died -= playerDied;
+        }
+    }
+
+    internal class TelegramNotificator : INotificator
+    {
+        private ITelegramBotClient _botClient;
+
+        public TelegramNotificator(ITelegramBotClient botClient)
+        {
+            _botClient = botClient;
+        }
+
+        public void GameAreaIsReduced()
+        {
+        }
+
+        public void GameHasEnded()
+        {
+        }
+
+        public void GameHasStarted()
+        {
+        }
+
+        public void RoundHasEnded(int round)
+        {
         }
     }
 }

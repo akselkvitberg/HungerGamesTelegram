@@ -11,11 +11,13 @@ namespace HungerGamesTelegram
 
     class TelegramPlayer : Actor
     {
+        public Game Game { get; }
         public long Id {get;}
         private readonly ITelegramBotClient _client;
 
-        public TelegramPlayer(long id, ITelegramBotClient client)
+        public TelegramPlayer(Game game, long id, ITelegramBotClient client)
         {
+            Game = game;
             Id = id;
             _client = client;
         }

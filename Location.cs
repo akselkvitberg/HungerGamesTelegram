@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HungerGamesTelegram
 {
@@ -8,11 +9,12 @@ namespace HungerGamesTelegram
         public List<Actor> Players { get; } = new List<Actor>();
         public Dictionary<string, Location> Directions {get;} = new Dictionary<string, Location>();
         public bool IsDeadly {get;set;} = false;
+        public bool IsStartingPoint { get; internal set; }
     }
 
     static class LocationFactory
     {
-        public static Location[,] CreateLocations(int dimension)
+        public static List<Location> CreateLocations(int dimension)
         {
             Queue<string> names = new Queue<string>()
             {
@@ -20,6 +22,7 @@ namespace HungerGamesTelegram
             };
 
             Location[,] locations = new Location[dimension,dimension];
+            List<Location> list = new List<Location>();
 
             for (int y = 0; y < dimension; y++)
             {
@@ -29,8 +32,15 @@ namespace HungerGamesTelegram
                     {
                         Name = $"Koordinat {x}, {y}"
                     };
+                    list.Add(locations[x,y]);
                 }
             }
+
+            locations[dimension/2, dimension/2].IsStartingPoint = true;
+            locations[0, 0].IsDeadly = true;
+            locations[0,dimension-1].IsDeadly = true;
+            locations[dimension-1, dimension-1].IsDeadly=true;
+            locations[dimension-1, 0].IsDeadly = true;
 
             for (int y = 0; y < dimension; y++)
             {
@@ -51,7 +61,7 @@ namespace HungerGamesTelegram
                 }
             }
             
-            return locations;
+            return list;
         }
     }
 }

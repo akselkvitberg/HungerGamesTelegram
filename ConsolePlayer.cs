@@ -1,9 +1,14 @@
+using System.Linq;
 using static System.Console;
 
 namespace HungerGamesTelegram
 {
     class ConsolePlayer : Actor
     {
+        public ConsolePlayer(Game game) {
+            game.RoundDelay = 0;
+        }
+
         public override void EncounterPrompt(Actor actor)
         {
             WriteLine();
@@ -33,10 +38,13 @@ namespace HungerGamesTelegram
         public override void MovePrompt()
         {
             WriteLine($"Du er her: {Location.Name}");
+            if(Location.IsDeadly){
+                WriteLine("Du er fanget i stormen. Du må flytte deg, ellers dør du!");
+            }
             WriteLine("Hvor vil du gå?");
 
 
-            foreach (var location in Location.Directions)
+            foreach (var location in Location.Directions.Where(x=>!x.Value.IsDeadly))
             {
                 WriteLine($"> {location.Key}: {location.Value.Name}");
             }
@@ -95,6 +103,11 @@ namespace HungerGamesTelegram
             WriteLine($"{actor.Name} (lvl {actor.Level}) drepte deg");
             WriteLine($"Du døde");
             base.Die(actor);
+        }
+
+        public override void KillZone() {
+            WriteLine("Du ble tatt av stormen");
+            base.KillZone();
         }
 
         public override void Share(Actor actor)

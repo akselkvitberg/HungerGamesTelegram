@@ -24,12 +24,12 @@ namespace HungerGamesTelegram
 
         public virtual void Share(Actor actor)
         {
-            Level++;
+            Level += 1;
         }
 
         public virtual void FailAttack(Actor actor)
         {
-            Level += 2;
+            Level += 1;
         }
 
         public virtual void RunAway(Actor player2)
@@ -64,6 +64,11 @@ namespace HungerGamesTelegram
                 Location = nextLocation;
             }
         }
+
+        public virtual void KillZone()
+        {
+            IsDead = true;
+        }
     }
 
     abstract class Bot : Actor
@@ -81,7 +86,7 @@ namespace HungerGamesTelegram
 
         public override void Move() 
         {
-            var nextLocation = Location.Directions.Values.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();
+            var nextLocation = Location.Directions.Values.Concat(new []{Location}).Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();
             base.Move(nextLocation);
         }
     }
@@ -89,7 +94,14 @@ namespace HungerGamesTelegram
     {
         public override void EncounterPrompt(Actor actor) 
         {
-             EncounterAction = (EncounterReply)random.Next(0, 3);
+            if(Location.Directions.All(x=>x.Value.IsDeadly))
+            {
+                EncounterAction = (EncounterReply)random.Next(0, 2);
+            }
+            else
+            {
+                EncounterAction = (EncounterReply)random.Next(0, 3);
+            }
         }
     }
 
@@ -100,7 +112,17 @@ namespace HungerGamesTelegram
 
     class RunBot : Bot
     {
-        public override void EncounterPrompt(Actor actor) {EncounterAction = EncounterReply.RunAway;}
+        public override void EncounterPrompt(Actor actor) 
+        {
+            if(Location.Directions.All(x=>x.Value.IsDeadly))
+            {
+                EncounterAction = EncounterReply.Attack;
+            }
+            else
+            {
+                EncounterAction = EncounterReply.RunAway;
+            }
+        }
     }
 
     class LootBot : Bot

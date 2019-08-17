@@ -7,16 +7,26 @@ using static System.Console;
 namespace HungerGamesTelegram
 {
     class Game {
-        public Location[,] Locations { get; set; }
+        private readonly INotificator notificator;
+
+        public List<Location> Locations { get; set; }
         public List<Actor> Players { get; set; } = new List<Actor>();
 
         public List<Actor> Results {get;set;} = new List<Actor>();
 
         public Actor Me {get; set;}
+        public int RoundDelay { get; internal set; } = 15000;
+
+        public int Dimension {get;set;} = 6;
+
+        public Game(INotificator notificator)
+        {
+            this.notificator = notificator;
+        }
 
         public async Task StartGame(Actor singlePlayer) {
             
-            Locations = LocationFactory.CreateLocations(4);
+            Locations = LocationFactory.CreateLocations(Dimension);
             
             Me = singlePlayer;
             Players.Add(singlePlayer);
@@ -34,22 +44,29 @@ namespace HungerGamesTelegram
                 Players.Add(new Bot1());
             for (int i = 0; i < 20; i++)
                 Players.Add(new Bot2());
-            // Todo: When we have shrinking size, add this
-            // for (int i = 0; i < 20; i++)
-            //     Players.Add(new RunBot());
+            for (int i = 0; i < 20; i++)
+                Players.Add(new RunBot());
 
-            var startLocation = Locations[2,2];
+            var startLocation = Locations.First(x=>x.IsStartingPoint);
             foreach (var player in Players)
             {
                 player.Location = startLocation;
             }
 
-            int roundCount = 0;
+            int roundCount = 1;
             while (Players.Count > 1)
             {
-                await DoMovements();
+                if(Locations.Count(x=>!x.IsDeadly) > 1)
+                {
+                    await DoMovements();
+                    KillPlayersInDeadZone();
+                }
                 await DoEncountersAsync();
-                Console.WriteLine($"Runde {roundCount++} er over");
+                notificator.RoundHasEnded(roundCount++);
+                if(roundCount % 3 == 0)
+                {
+                    LimitPlayArea();
+                }
             }
 
             for (int i = 0; i < Results.Count; i++)
@@ -57,18 +74,48 @@ namespace HungerGamesTelegram
                 WriteLine($"{Results.Count - i}: {Results[i].GetType().Name} ({Results[i].Level})");
             }
 
-            // for (int i = Results.Count; i >= 1; i--)
-            // {
-            //     WriteLine($"{i}: {Results[i-1].GetType().Name}");
-            // }
+            notificator.GameHasEnded();
 
             if(!Me.IsDead)
             {
-                WriteLine("Du vant!");
+                WriteLine("Vinner Vinner Kylling Vinger");
             }
-            else
-                WriteLine("Du tapte");
             ReadLine();
+        }
+
+        private void KillPlayersInDeadZone()
+        {
+            foreach(var player in Players.Where(x=>x.Location.IsDeadly).ToList())
+            {
+                player.KillZone();
+                Players.Remove(player);
+                Results.Add(player);
+            }
+        }
+
+        private void LimitPlayArea()
+        {
+            var remainingTiles = Locations.Count(x=>!x.IsDeadly);
+            if(remainingTiles == 1){
+                return;
+            }
+            if(remainingTiles <= 4)
+            {
+                var location = Locations.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).First();
+                location.IsDeadly = true;
+                notificator.GameAreaIsReduced();
+                return;
+            }
+            
+            foreach (var location in Locations.Where(x=>x.IsDeadly).ToList())
+            {
+                foreach (var next in location.Directions)
+                {
+                    next.Value.IsDeadly = true;
+                }
+            }
+
+            notificator.GameAreaIsReduced();
         }
 
         private async Task DoMovements()
@@ -77,7 +124,7 @@ namespace HungerGamesTelegram
             {
                 actor.MovePrompt();
             }
-            await Task.Delay(5000);
+            await Task.Delay(RoundDelay);
             foreach (var actor in Players)
             {
                 actor.Move();
@@ -100,7 +147,7 @@ namespace HungerGamesTelegram
                 encounter.Prompt();
             }
             
-            await Task.Delay(5000);
+            await Task.Delay(RoundDelay);
 
             foreach (var encounter in encounters)
             {
@@ -143,5 +190,15 @@ namespace HungerGamesTelegram
             return encounters;
         }
     }
-    
+
+    public interface INotificator
+    {
+         void GameHasStarted();
+
+         void GameHasEnded();
+
+         void RoundHasEnded(int round);
+
+         void GameAreaIsReduced();
+    }
 }
