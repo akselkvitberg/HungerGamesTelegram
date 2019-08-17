@@ -8,7 +8,7 @@ namespace HungerGamesTelegram
     class Program
     {
 
-        public static Location[] Locations { get; set; } = new Location[12 * 12];
+        public static Location[,] Locations { get; set; }
         public static List<Actor> Players { get; set; } = new List<Actor>();
 
         public static List<Actor> Results {get;set;} = new List<Actor>();
@@ -19,16 +19,13 @@ namespace HungerGamesTelegram
         {
             WriteLine("Hunger Games");
 
-            for (int i = 0; i < 12*12; i++)
-            {
-                Location l = new Location()
-                {
-                    Name = "Location " + i
-                };
-                Locations[i] = l;
-            }
+            Locations = LocationFactory.CreateLocations(10);
+            
 
             Players.Add(Me);
+
+            // Debug
+            Me.Level = 10;
 
             for (int i = 0; i < 20; i++)
                 Players.Add(new RandomBot());
@@ -43,6 +40,8 @@ namespace HungerGamesTelegram
             // Todo: When we have shrinking size, add this
             // for (int i = 0; i < 20; i++)
             //     Players.Add(new RunBot());
+
+            
 
             while (Players.Count > 1)
             {
@@ -108,10 +107,5 @@ namespace HungerGamesTelegram
     }
 
     
-
-    class Location
-    {
-        public string Name { get; set; }
-        public List<Actor> Players { get; } = new List<Actor>();
-    }
+    
 }
