@@ -37,16 +37,16 @@ namespace HungerGamesTelegram
                 for (int x = 0; x < dimension; x++)
                 {
                     if(x != 0) {
-                        locations[x,y].Directions.Add("Vest",locations[x-1,y]);
+                        locations[x,y].Directions.Add("vest",locations[x-1,y]);
                     }
                     if(y != 0) {
-                        locations[x,y].Directions.Add("Nord", locations[x,y-1]);
+                        locations[x,y].Directions.Add("nord", locations[x,y-1]);
                     }
                     if(x != dimension-1) {
-                        locations[x,y].Directions.Add("Øst",locations[x+1,y]);
+                        locations[x,y].Directions.Add("øst",locations[x+1,y]);
                     }
                     if(y != dimension-1) {
-                        locations[x,y].Directions.Add("Sør", locations[x,y+1]);
+                        locations[x,y].Directions.Add("sør", locations[x,y+1]);
                     }
                 }
             }
