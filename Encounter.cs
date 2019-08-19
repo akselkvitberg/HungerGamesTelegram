@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 
 namespace HungerGamesTelegram
 {
-    class Encounter
+    class Encounter: IEncounter
     {
         public Actor Player1 { get; set; }
         public Actor Player2 { get; set; }
@@ -58,6 +59,21 @@ namespace HungerGamesTelegram
             }
         }
 
+        public List<Actor> GetDeadPlayers()
+        {
+            List<Actor> deadPlayers = new List<Actor>();
+
+            if (Player1.IsDead)
+            {
+                deadPlayers.Add(Player1);
+            }
+            if (Player2.IsDead)
+            {
+                deadPlayers.Add(Player2);
+            }
+            return deadPlayers;
+        }
+
         private static Random random = new Random();
 
         private void ResolveAttack(Actor player1, Actor player2)
@@ -86,20 +102,11 @@ namespace HungerGamesTelegram
         RunAway
     }
 
-    class NonEncounter : Encounter
+    internal interface IEncounter
     {
+        void Prompt();
 
-        public override void Prompt()
-        {
-            Player1.NoEncounterPrompt();
-        }
-
-        public override void RunEncounter()
-        {
-            if (Player1.EncounterAction == EncounterReply.Loot)
-            {
-                Player1.Loot();
-            }
-        }
+        void RunEncounter();
+        List<Actor> GetDeadPlayers();
     }
 }

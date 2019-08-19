@@ -8,7 +8,7 @@ namespace HungerGamesTelegram
 {
     class Game 
     {
-        private readonly INotificator notificator;
+        private INotificator Notificator { get; }
 
         public List<Location> Locations { get; set; }
         public List<Actor> Players { get; set; } = new List<Actor>();
@@ -22,10 +22,11 @@ namespace HungerGamesTelegram
         public int RoundDelay { get; internal set; } = 10000;
 
         public int Dimension {get;set;} = 6;
+        private int _playersThisRound = 0;
 
         public Game(INotificator notificator)
         {
-            this.notificator = notificator;
+            Notificator = notificator;
         }
 
         public async Task StartGame() 
@@ -57,26 +58,36 @@ namespace HungerGamesTelegram
                 player.Location = startLocation;
             }
 
-            notificator.GameHasStarted();
+            Notificator.GameHasStarted();
             
-            int roundCount = 1;
+            int roundCount = 0;
             while (Players.Count > 1)
             {
                 // Round start
-                playersThisRound = Players.Count;
+                _playersThisRound = Players.Count;
+                roundCount++;
+
+                // Movement
                 if(Locations.Count(x=>!x.IsDeadly) > 1)
                 {
                     await DoMovements();
                 }
+                // Kill players that are still in the storm - they either moved into the storm, or stood still
                 KillPlayersInDeadZone();
 
+                // Run encounters
                 await DoEncountersAsync();
-                notificator.RoundHasEnded(roundCount++);
+
+                // Round end
+                Notificator.RoundHasEnded(roundCount);
+
+                // Limit play area every 3 rounds
                 if(roundCount % 3 == 0)
                 {
                     await Task.Delay(1000);
                     LimitPlayArea();
                 }
+                
                 await Task.Delay(2000);
             }
 
@@ -85,11 +96,10 @@ namespace HungerGamesTelegram
                 RemovePlayer(actor);
             }
 
-            notificator.GameHasEnded(Results);
+            Notificator.GameHasEnded(Results);
             Completed = true;
         }
 
-        private int playersThisRound = 0;
         private void KillPlayersInDeadZone()
         {
             foreach(var player in Players.Where(x=>x.Location.IsDeadly).ToList())
@@ -103,8 +113,8 @@ namespace HungerGamesTelegram
         {
             Players.Remove(player);
             Results.Add(player);
-            player.Rank = playersThisRound;
-            player.Result(playersThisRound);
+            player.Rank = _playersThisRound;
+            player.Result(_playersThisRound);
         }
 
         private void LimitPlayArea()
@@ -117,7 +127,7 @@ namespace HungerGamesTelegram
             {
                 var location = Locations.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).First();
                 location.IsDeadly = true;
-                notificator.GameAreaIsReduced();
+                Notificator.GameAreaIsReduced();
                 return;
             }
             
@@ -129,7 +139,7 @@ namespace HungerGamesTelegram
                 }
             }
 
-            notificator.GameAreaIsReduced();
+            Notificator.GameAreaIsReduced();
         }
 
         private async Task DoMovements()
@@ -149,7 +159,7 @@ namespace HungerGamesTelegram
         {
             var locations = Players.GroupBy(x => x.Location);
 
-            List<Encounter> encounters = new List<Encounter>();
+            List<IEncounter> encounters = new List<IEncounter>();
 
             foreach (var location in locations)
             {
@@ -166,22 +176,18 @@ namespace HungerGamesTelegram
             foreach (var encounter in encounters)
             {
                 encounter.RunEncounter();
-                if (encounter.Player1.IsDead)
+                foreach (var player in encounter.GetDeadPlayers())
                 {
-                    RemovePlayer(encounter.Player1);
-                }
-                if (encounter.Player2?.IsDead == true)
-                {
-                    RemovePlayer(encounter.Player2);
+                    RemovePlayer(player);
                 }
             }
         }
 
-        private List<Encounter> GetLocationEncounters(List<Actor> locationPlayers)
+        private List<IEncounter> GetLocationEncounters(List<Actor> locationPlayers)
         {
             var players = new Stack<Actor>(locationPlayers.OrderBy(x => Guid.NewGuid()).ToList());
 
-            List<Encounter> encounters = new List<Encounter>();
+            List<IEncounter> encounters = new List<IEncounter>();
 
             while (players.Count > 1)
             {
@@ -196,7 +202,7 @@ namespace HungerGamesTelegram
 
             if (players.Count == 1)
             {
-                encounters.Add(new NonEncounter() { Player1 = players.Pop() });
+                encounters.Add(new EventEncounter() { Player = players.Pop() });
             }
 
             return encounters;
@@ -205,8 +211,7 @@ namespace HungerGamesTelegram
 
     interface INotificator
     {
-        void GameIsStarting();
-         void GameHasStarted();
+        void GameHasStarted();
 
          void GameHasEnded(List<Actor> results);
 
