@@ -1,19 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using File = System.IO.File;
 
 namespace HungerGamesTelegram
 {
     class TelegramGameHost : INotificator{
         private ITelegramBotClient _botClient;
 
-        Dictionary<long, TelegramPlayer> players = new Dictionary<long, TelegramPlayer>();
+        private Dictionary<long, TelegramPlayer> Players => _currentGame?.Players.OfType<TelegramPlayer>().ToDictionary(x => x.Id, x => x) ?? new Dictionary<long, TelegramPlayer>();
+        readonly List<long> _playersToNotify = new List<long>();
 
-        Game currentGame;
+        Game _currentGame;
 
         public void Start() {
             var key = File.ReadAllText("botkey.key");
@@ -27,67 +30,144 @@ namespace HungerGamesTelegram
         {
             Console.WriteLine(e.Message.From?.FirstName + "> " + e.Message.Text);
 
-
-            if (e.Message.Text == "/start") {
-                currentGame?.StartGame();
+            if (e.Message.From?.Id == 49374973)
+            {
+                if (HandleAdminMessage(e.Message))
+                {
+                    return;
+                }
             }
             
-            if (players.ContainsKey(e.Message.Chat.Id))
+            if (Players.ContainsKey(e.Message.Chat.Id))
             {
-                players[e.Message.Chat.Id].ParseMessage(e.Message);
+                Players[e.Message.Chat.Id].ParseMessage(e.Message);
                 return;
             }
 
-            if(e.Message.Text == "/join")
+            switch (e.Message.Text)
             {
-                if(currentGame == null){
-                    currentGame = new Game(this);
-                }
-                if(currentGame.Started)
+                case "/notify":
+                    if (_currentGame != null)
+                    {
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i start-fasen. For å bli med på neste runde, send /join");
+                    }
+                    else
+                    {
+                        _playersToNotify.Add(e.Message.Chat.Id);
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du vil få beskjed før neste runde starter");
+                    }
+                    break;
+                case "/join":
                 {
-                    // already started, please wait
-                    _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent");
-                }
+                    if(_currentGame == null)
+                    {
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet har ikke startet. For å få beskjed når en ny runde starter, send /notify");
+                        return;
+                    }
+                    if(_currentGame.Started)
+                    {
+                        // already started, please wait
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent. For å få beskjed når en ny runde starter, send /notify");
+                        return;
+                    }
 
-                TelegramPlayer player = new TelegramPlayer(currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
-                players.Add(e.Message.Chat.Id, player);
-                currentGame.Players.Add(player);
+                    TelegramPlayer player = new TelegramPlayer(_currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
+                    _currentGame.Players.Add(player);
+                    _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du er med i neste runde.\nRunden starter snart.");
+                    break;
+                }
             }
+        }
+
+        private bool HandleAdminMessage(Message message)
+        {
+            switch (message.Text)
+            {
+                case "/newgame":
+                    if (_currentGame == null)
+                    {
+                        _playersToNotify.Add(message.Chat.Id);
+                        _currentGame = new Game(this);
+                        foreach (var id in _playersToNotify.ToList())
+                        {
+                            _botClient.SendTextMessageAsync(id, "En ny runde starter snart. For å bli med, send /join");
+                        }
+                        _playersToNotify.Clear();
+                    }
+                    else
+                    {
+                        _botClient.SendTextMessageAsync(message.Chat.Id, "Stop spillet først. /endgame");
+                    }
+                    return true;
+                case "/start":
+                    if (_currentGame == null)
+                    {
+                        _botClient.SendTextMessageAsync(message.Chat.Id, "Lag nytt spill først. /newgame");
+                    }
+                    else if (!gameIsStarting)
+                    {
+                        GameIsStarting();
+                        Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(x => _currentGame.StartGame());
+                    }
+
+                    return true;
+                case "/endgame":
+                    _currentGame = null;
+                    _botClient.SendTextMessageAsync(message.Chat.Id, "Stoppet. Lag et nytt spill: /newgame");
+                    return true;
+            }
+
+            return false;
         }
 
         public void GameAreaIsReduced()
         {
-            foreach (var player in players)
+            foreach (var player in Players)
             {
-                if(!player.Value.IsDead){
-                    _botClient.SendTextMessageAsync(player.Value.Id, "Området er redusert", replyMarkup: new ReplyKeyboardRemove());
+                if(!player.Value.IsDead)
+                {
+                    _botClient.SendTextMessageAsync(player.Key, "Området er redusert", replyMarkup: new ReplyKeyboardRemove());
                 }
             }
         }
 
         public void GameHasEnded(List<Actor> results)
         {
-            string str = "*Resultater*\n===\n---\n";
-            for (int i = 0; i < results.Count; i++)
+            string str = "*Resultater*\n\n";
+            foreach (var player in results)
             {
-                str += $"*{results.Count -1}.* {results[i].Name}";
+                str += $"*{player.Rank}.* {player.Name}\n";
             }
-            foreach (var player in players)
+            foreach (var player in results.OfType<TelegramPlayer>())
             {
-                _botClient.SendTextMessageAsync(player.Value.Id, str, Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
+                _botClient.SendTextMessageAsync(player.Id, str, Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
+            }
+
+            _currentGame = null;
+        }
+        private bool gameIsStarting = false;
+
+        public void GameIsStarting()
+        {
+            gameIsStarting = true;
+            foreach (var player in Players)
+            {
+                _botClient.SendTextMessageAsync(player.Key, "Runden starter om *1 minutt!*", Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
             }
         }
 
         public void GameHasStarted()
         {
-            foreach (var player in players)
+            gameIsStarting = false;
+            foreach (var player in Players)
             {
-                _botClient.SendTextMessageAsync(player.Value.Id, "Runden har startet!\n3... 2... 1... GO", Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
+                _botClient.SendTextMessageAsync(player.Key, "*Runden har startet!*", Telegram.Bot.Types.Enums.ParseMode.Markdown, replyMarkup: new ReplyKeyboardRemove());
             }
         }
 
         public void RoundHasEnded(int round)
         {
+
         }
     }
 }

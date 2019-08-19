@@ -104,7 +104,7 @@ namespace HungerGamesTelegram
                 {
                     directions.Add(new KeyboardButton($"{location.Key}"));
                 }
-                locations.Add($"*{location.Key}*: {location.Value.Name}");
+                locations.Add($"*{location.Key}*: {location.Value.Name}" + (location.Value.IsDeadly ? " (Storm)" : ""));
             }
 
             ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
@@ -120,7 +120,12 @@ namespace HungerGamesTelegram
         {
             Move(nextLocation);            
         }
-        
+
+        public override void Result(int rank)
+        {
+            Write($"Du ble *#{rank}!*");
+        }
+
         public override void NoEncounterPrompt()
         {
             Write($"Du er her: *{Location.Name}*", "Du ser ingen rundt deg.", "Du leter etter våpen.");

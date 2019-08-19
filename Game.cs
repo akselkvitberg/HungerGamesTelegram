@@ -19,7 +19,7 @@ namespace HungerGamesTelegram
 
         public bool Completed {get;set;} = false;
 
-        public int RoundDelay { get; internal set; } = 15000;
+        public int RoundDelay { get; internal set; } = 10000;
 
         public int Dimension {get;set;} = 6;
 
@@ -36,16 +36,18 @@ namespace HungerGamesTelegram
 
             Locations = LocationFactory.CreateLocations(Dimension);
             
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 15; i++)
                 Players.Add(new RandomBot());
-            // for (int i = 0; i < 20; i++)
-            //     Players.Add(new AttackBot());
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 10; i++)
+                Players.Add(new AttackBot());
+            for (int i = 0; i < 10; i++)
                 Players.Add(new LootBot());
-            // for (int i = 0; i < 20; i++)
-            //     Players.Add(new Bot1());
-            // for (int i = 0; i < 20; i++)
-            //     Players.Add(new Bot2());
+            for (int i = 0; i < 10; i++)
+                Players.Add(new Bot1());
+            for (int i = 0; i < 10; i++)
+                Players.Add(new Bot2());
+            for (int i = 0; i < 15; i++)
+                Players.Add(new Bot2());
             // for (int i = 0; i < 20; i++)
             //     Players.Add(new RunBot());
 
@@ -60,11 +62,14 @@ namespace HungerGamesTelegram
             int roundCount = 1;
             while (Players.Count > 1)
             {
+                // Round start
+                playersThisRound = Players.Count;
                 if(Locations.Count(x=>!x.IsDeadly) > 1)
                 {
                     await DoMovements();
-                    KillPlayersInDeadZone();
                 }
+                KillPlayersInDeadZone();
+
                 await DoEncountersAsync();
                 notificator.RoundHasEnded(roundCount++);
                 if(roundCount % 3 == 0)
@@ -75,23 +80,31 @@ namespace HungerGamesTelegram
                 await Task.Delay(2000);
             }
 
-            for (int i = 0; i < Results.Count; i++)
+            foreach (var actor in Players.ToList())
             {
-                WriteLine($"{Results.Count - i}: {Results[i].GetType().Name} ({Results[i].Level})");
+                RemovePlayer(actor);
             }
 
             notificator.GameHasEnded(Results);
             Completed = true;
         }
 
+        private int playersThisRound = 0;
         private void KillPlayersInDeadZone()
         {
             foreach(var player in Players.Where(x=>x.Location.IsDeadly).ToList())
             {
                 player.KillZone();
-                Players.Remove(player);
-                Results.Add(player);
+                RemovePlayer(player);
             }
+        }
+
+        private void RemovePlayer(Actor player)
+        {
+            Players.Remove(player);
+            Results.Add(player);
+            player.Rank = playersThisRound;
+            player.Result(playersThisRound);
         }
 
         private void LimitPlayArea()
@@ -155,13 +168,11 @@ namespace HungerGamesTelegram
                 encounter.RunEncounter();
                 if (encounter.Player1.IsDead)
                 {
-                    Players.Remove(encounter.Player1);
-                    Results.Add(encounter.Player1);
+                    RemovePlayer(encounter.Player1);
                 }
                 if (encounter.Player2?.IsDead == true)
                 {
-                    Players.Remove(encounter.Player2);
-                    Results.Add(encounter.Player2);
+                    RemovePlayer(encounter.Player2);
                 }
             }
         }
@@ -194,6 +205,7 @@ namespace HungerGamesTelegram
 
     interface INotificator
     {
+        void GameIsStarting();
          void GameHasStarted();
 
          void GameHasEnded(List<Actor> results);

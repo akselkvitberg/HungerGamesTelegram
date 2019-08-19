@@ -7,12 +7,11 @@ namespace HungerGamesTelegram
     abstract class Actor
     {
         protected static Random random = new Random();
-        public Guid PlayerId { get; set; } = Guid.NewGuid();
         public Location Location { get; set; }
         public int Level { get; set; } = 1;
         public string Name { get; set; }
-        public string PhoneNumber { get; set; }
         public bool IsDead { get; set; }
+        public int Rank { get; set; }
         public EncounterReply EncounterAction { get; internal set; }
 
         public abstract void EncounterPrompt(Actor actor);
@@ -69,6 +68,8 @@ namespace HungerGamesTelegram
         {
             IsDead = true;
         }
+
+        public abstract void Result(int rank);
     }
 
     abstract class Bot : Actor
@@ -88,6 +89,11 @@ namespace HungerGamesTelegram
         {
             var nextLocation = Location.Directions.Values.Concat(new []{Location}).Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();
             base.Move(nextLocation);
+        }
+
+        public override void Result(int rank)
+        {
+            
         }
     }
     class RandomBot : Bot
@@ -151,6 +157,18 @@ namespace HungerGamesTelegram
                 EncounterAction = EncounterReply.Attack;
             }
             else EncounterAction = EncounterReply.Loot;
+        }
+    }
+
+        class Bot3 : Bot
+    {
+        public override void EncounterPrompt(Actor actor) 
+        {
+            if(Level < 5)
+            {
+                EncounterAction = EncounterReply.RunAway;
+            }
+            else EncounterAction = EncounterReply.Attack;
         }
     }
 }

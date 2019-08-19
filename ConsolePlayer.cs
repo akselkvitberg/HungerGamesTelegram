@@ -110,6 +110,11 @@ namespace HungerGamesTelegram
             base.KillZone();
         }
 
+        public override void Result(int rank)
+        {
+            WriteLine($"Du ble #{rank}");
+        }
+
         public override void Share(Actor actor)
         {
             WriteLine($"Du og {actor.Name} delte på godene (+1 lvl)");

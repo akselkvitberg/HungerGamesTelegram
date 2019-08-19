@@ -14,12 +14,14 @@ namespace HungerGamesTelegram
             var telegramGameHost = new TelegramGameHost();
             telegramGameHost.Start();
 
-            Game game = new Game(new ConsoleNotificator());
-            while(true)
-            {
-                game.Players.Add(new ConsolePlayer(game));
-                await game.StartGame();
-            }
+            Thread.Sleep(int.MaxValue);
+
+            //Game game = new Game(new ConsoleNotificator());
+            //while(true)
+            //{
+            //    game.Players.Add(new ConsolePlayer(game));
+            //    await game.StartGame();
+            //}
         }
     }
 
@@ -33,6 +35,11 @@ namespace HungerGamesTelegram
         public void GameHasEnded(List<Actor> results)
         {
             WriteLine("Spillet er slutt");
+        }
+
+        public void GameIsStarting()
+        {
+            WriteLine("Runden starter");
         }
 
         public void GameHasStarted()
