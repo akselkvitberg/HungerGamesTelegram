@@ -50,6 +50,8 @@ namespace HungerGamesTelegram
 
     public abstract class EventBase
     {
+        protected Random random = new Random();
+
         public string EventText { get; protected set; }
         public Dictionary<string, Action<Actor>> Options { get; } = new Dictionary<string, Action<Actor>>();
 
