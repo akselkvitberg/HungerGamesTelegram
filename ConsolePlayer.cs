@@ -94,19 +94,19 @@ namespace HungerGamesTelegram
 
         public override void SuccessAttack(Actor actor)
         {
-            WriteLine($"Du drepte {actor.Name}.");
+            WriteLine($"Du vant over {actor.Name}.");
             base.SuccessAttack(actor);
         }
 
         public override void Die(Actor actor)
         {
-            WriteLine($"{actor.Name} (lvl {actor.Level}) drepte deg");
-            WriteLine($"Du døde");
+            WriteLine($"{actor.Name} (lvl {actor.Level}) vant.");
+            WriteLine($"Du er ute av spillet");
             base.Die(actor);
         }
 
         public override void KillZone() {
-            WriteLine("Du ble tatt av stormen");
+            WriteLine("Du ble tatt av stormen.");
             base.KillZone();
         }
 

@@ -18,6 +18,17 @@ namespace HungerGamesTelegram
 
         Game _currentGame;
 
+        private string rules = string.Join("\n",
+            new string[]{
+                "Hunger Games - Telegram",
+                "Målet med spillet er å være siste person som ikke er beseiret.",
+                "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, loot og løp vekk).",
+                "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen."
+                ""
+                
+            });
+
+
         public void Start() {
             var key = File.ReadAllText("botkey.key");
             _botClient = new TelegramBotClient(key);
@@ -37,6 +48,12 @@ namespace HungerGamesTelegram
                     return;
                 }
             }
+
+            if(e.Message.Text == "/regler")
+            {
+                _botClient.SendTextMessageAsync(e.Message.Chat.Id, rules);
+            }
+
             
             if (Players.ContainsKey(e.Message.Chat.Id))
             {

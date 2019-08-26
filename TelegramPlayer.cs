@@ -88,7 +88,7 @@ namespace HungerGamesTelegram
                 new KeyboardButton("run"),
             },true, true);
 
-            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du møter på *{actor.Name}*", $"Du er level *{Level}*", "Hva vil du gjøre?");
+            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du møter på *{actor.Name}* (lvl {actor.Level})", $"Du er level *{Level}*", "Hva vil du gjøre?");
 
             currentstate = State.AskForAction;
             EncounterAction = EncounterReply.Loot;
@@ -128,7 +128,7 @@ namespace HungerGamesTelegram
 
         public override void NoEncounterPrompt()
         {
-            Write($"Du er her: *{Location.Name}*", "Du ser ingen rundt deg.", "Du leter etter våpen.");
+            Write($"Du er her: *{Location.Name}*", "Det er ingen rundt deg.", "Du leter etter våpen.");
             base.NoEncounterPrompt();
         }
 
@@ -154,12 +154,12 @@ namespace HungerGamesTelegram
         public override void SuccessAttack(Actor actor)
         {
             base.SuccessAttack(actor);
-            Write($"Du drepte *{actor.Name}*.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
+            Write($"Du beseiret *{actor.Name}*.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
         }
 
         public override void Die(Actor actor)
         {
-            Write($"*{actor.Name}* (level **{actor.Level}**) drepte deg.", "*Spillet er over.*");
+            Write($"*{actor.Name}* (level **{actor.Level}**) beseiret deg.", "*Du er ute av spillet.*");
             base.Die(actor);
             if(Died != null){
                 Died(this);
