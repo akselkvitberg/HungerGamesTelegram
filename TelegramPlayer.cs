@@ -142,9 +142,9 @@ namespace HungerGamesTelegram
             Write($"Du ble *#{rank}!*");
         }
 
-        public override void Message(string message)
+        public override void Message(params string[] message)
         {
-            Write(message);
+            Write(string.Join("\n", message));
         }
 
         public override void Loot()

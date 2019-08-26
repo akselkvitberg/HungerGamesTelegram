@@ -8,18 +8,25 @@ namespace HungerGamesTelegram
     internal class EventEncounter : IEncounter
     {
         internal Actor Player { get; }
+        Random random = new Random();
 
         public EventBase CurrentEvent { get; }
+
+        List<Func<EventBase>> _eventList = new List<Func<EventBase>>()
+        {
+            () => new FeralDogsEvent(),
+            () => new MeteoriteEvent(),
+        };
 
         public EventEncounter(Actor player)
         {
             Player = player;
-            CurrentEvent = new FeralDogsEvent();
+            CurrentEvent = _eventList[random.Next(_eventList.Count)]();
         }
 
         public void Prompt()
         {
-            Player.EventPrompt(CurrentEvent.EventMessage, CurrentEvent.Responses);
+            Player.EventPrompt(CurrentEvent.EventText, CurrentEvent.Responses);
         }
 
         public void RunEncounter()
@@ -43,10 +50,11 @@ namespace HungerGamesTelegram
 
     public abstract class EventBase
     {
-        public abstract string EventMessage { get; }
+        public string EventText { get; protected set; }
+        public Dictionary<string, Action<Actor>> Options { get; } = new Dictionary<string, Action<Actor>>();
+
 
         public string[] Responses => Options.Select(x => x.Key).ToArray();
-        public abstract Dictionary<string, Action<Actor>> Options { get; }
 
         public void RunEvent(Actor actor, string response)
         {
@@ -58,6 +66,11 @@ namespace HungerGamesTelegram
             {
                 Options.First().Value(actor);
             }
+        }
+
+        protected void Option(string option, Action<Actor> action)
+        {
+            Options.Add(option, action);
         }
     }
 }

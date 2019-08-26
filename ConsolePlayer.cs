@@ -121,9 +121,12 @@ namespace HungerGamesTelegram
             WriteLine($"Du ble #{rank}");
         }
 
-        public override void Message(string message)
+        public override void Message(params string[] message)
         {
-            WriteLine(message);
+            foreach (var s in message)
+            {
+                WriteLine(s);
+            }
         }
 
         public override void Share(Actor actor)

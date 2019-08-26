@@ -69,7 +69,7 @@ namespace HungerGamesTelegram
         }
 
         public abstract void Result(int rank);
-        public abstract void Message(string message);
+        public abstract void Message(params string[] message);
     }
 
     abstract class Bot : Actor
@@ -101,7 +101,7 @@ namespace HungerGamesTelegram
             
         }
 
-        public override void Message(string message)
+        public override void Message(params string[] message)
         {
             
         }
