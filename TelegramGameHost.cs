@@ -10,7 +10,7 @@ using File = System.IO.File;
 
 namespace HungerGamesTelegram
 {
-    class TelegramGameHost : INotificator{
+    public class TelegramGameHost : INotificator{
         private ITelegramBotClient _botClient;
 
         private Dictionary<long, TelegramPlayer> Players => _currentGame?.Players.OfType<TelegramPlayer>().ToDictionary(x => x.Id, x => x) ?? new Dictionary<long, TelegramPlayer>();
@@ -23,7 +23,7 @@ namespace HungerGamesTelegram
                 "Hunger Games - Telegram",
                 "Målet med spillet er å være siste person som ikke er beseiret.",
                 "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, loot og løp vekk).",
-                "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen."
+                "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen.",
                 ""
                 
             });

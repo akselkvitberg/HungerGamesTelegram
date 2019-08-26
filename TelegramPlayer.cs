@@ -31,6 +31,7 @@ namespace HungerGamesTelegram
             AskForDirection,
             AskForAction,
             None,
+            AskForEvent
         }
 
         State currentstate = State.None;
@@ -94,6 +95,21 @@ namespace HungerGamesTelegram
             EncounterAction = EncounterReply.Loot;
         }
 
+        public override void EventPrompt(string message, string[] options)
+        {
+            currentstate = State.AskForEvent;
+
+            List<KeyboardButton> optionButtons = new List<KeyboardButton>();
+            foreach (var option in options)
+            {
+                optionButtons.Add(new KeyboardButton(option));
+            }
+
+            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(optionButtons);
+
+            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du er level *{Level}*", message);
+        }
+
         public override void MovePrompt()
         {
             List<KeyboardButton> directions = new List<KeyboardButton>();
@@ -115,10 +131,10 @@ namespace HungerGamesTelegram
             currentstate = State.AskForDirection;
         }
 
-        Location nextLocation = null;
+        Location nextLocation;
         public override void Move()
         {
-            Move(nextLocation);            
+            Move(nextLocation);
         }
 
         public override void Result(int rank)
@@ -126,10 +142,9 @@ namespace HungerGamesTelegram
             Write($"Du ble *#{rank}!*");
         }
 
-        public override void NoEncounterPrompt()
+        public override void Message(string message)
         {
-            Write($"Du er her: *{Location.Name}*", "Det er ingen rundt deg.", "Du leter etter våpen.");
-            base.NoEncounterPrompt();
+            Write(message);
         }
 
         public override void Loot()

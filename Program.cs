@@ -11,17 +11,17 @@ namespace HungerGamesTelegram
         {
             WriteLine("Hunger Games");
 
-            var telegramGameHost = new TelegramGameHost();
-            telegramGameHost.Start();
+            //var telegramGameHost = new TelegramGameHost();
+            //telegramGameHost.Start();
 
-            Thread.Sleep(int.MaxValue);
+            //Thread.Sleep(int.MaxValue);
 
-            //Game game = new Game(new ConsoleNotificator());
-            //while(true)
-            //{
-            //    game.Players.Add(new ConsolePlayer(game));
-            //    await game.StartGame();
-            //}
+            Game game = new Game(new ConsoleNotificator());
+            while (true)
+            {
+                game.Players.Add(new ConsolePlayer(game));
+                await game.StartGame();
+            }
         }
     }
 

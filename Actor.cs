@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HungerGamesTelegram
 {
-    abstract class Actor
+    public abstract class Actor
     {
         protected static Random random = new Random();
         public Location Location { get; set; }
@@ -14,12 +14,11 @@ namespace HungerGamesTelegram
         public int Rank { get; set; }
         public EncounterReply EncounterAction { get; internal set; }
 
+        public string EventEncounterReply { get; internal set; }
+
         public abstract void EncounterPrompt(Actor actor);
 
-        public virtual void NoEncounterPrompt()
-        {
-            EncounterAction = EncounterReply.Loot;
-        }
+        public abstract void EventPrompt(string message, string[] options);
 
         public virtual void Share(Actor actor)
         {
@@ -70,6 +69,7 @@ namespace HungerGamesTelegram
         }
 
         public abstract void Result(int rank);
+        public abstract void Message(string message);
     }
 
     abstract class Bot : Actor
@@ -77,9 +77,14 @@ namespace HungerGamesTelegram
 
         public Bot() 
         {
-            this.Name = this.GetType().Name;
+            Name = GetType().Name;
         }
-        
+
+        public override void EventPrompt(string message, string[] options)
+        {
+            EventEncounterReply = options[random.Next(options.Length)];
+        }
+
         public override void MovePrompt()
         {
 
@@ -92,6 +97,11 @@ namespace HungerGamesTelegram
         }
 
         public override void Result(int rank)
+        {
+            
+        }
+
+        public override void Message(string message)
         {
             
         }

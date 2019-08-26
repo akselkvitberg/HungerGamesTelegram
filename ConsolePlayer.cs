@@ -34,6 +34,17 @@ namespace HungerGamesTelegram
             }
         }
 
+        public override void EventPrompt(string message, string[] options)
+        {
+            WriteLine(message);
+            foreach (var option in options)
+            {
+                WriteLine(">" + option);
+            }
+
+            EventEncounterReply = ReadLine();
+        }
+
         Location nextLocation = null;
         public override void MovePrompt()
         {
@@ -66,11 +77,6 @@ namespace HungerGamesTelegram
         public override void Move()
         {
             Move(nextLocation);
-        }
-        public override void NoEncounterPrompt()
-        {
-            WriteLine("Du ser ingen rundt deg.");
-            EncounterAction = EncounterReply.Loot;
         }
 
         public override void Loot()
@@ -113,6 +119,11 @@ namespace HungerGamesTelegram
         public override void Result(int rank)
         {
             WriteLine($"Du ble #{rank}");
+        }
+
+        public override void Message(string message)
+        {
+            WriteLine(message);
         }
 
         public override void Share(Actor actor)

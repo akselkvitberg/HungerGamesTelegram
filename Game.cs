@@ -136,6 +136,7 @@ namespace HungerGamesTelegram
                 foreach (var next in location.Directions)
                 {
                     next.Value.IsDeadly = true;
+                    next.Value.Environment = location.Environment;
                 }
             }
 
@@ -202,7 +203,7 @@ namespace HungerGamesTelegram
 
             if (players.Count == 1)
             {
-                encounters.Add(new EventEncounter() { Player = players.Pop() });
+                encounters.Add(new EventEncounter(players.Pop()));
             }
 
             return encounters;

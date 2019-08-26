@@ -1,22 +1,29 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HungerGamesTelegram
 {
     internal class EventEncounter : IEncounter
     {
-        internal Actor Player { get; set; }
+        internal Actor Player { get; }
+
+        public EventBase CurrentEvent { get; }
+
+        public EventEncounter(Actor player)
+        {
+            Player = player;
+            CurrentEvent = new FeralDogsEvent();
+        }
 
         public void Prompt()
         {
-            Player.NoEncounterPrompt();
+            Player.EventPrompt(CurrentEvent.EventMessage, CurrentEvent.Responses);
         }
 
         public void RunEncounter()
         {
-            if (Player.EncounterAction == EncounterReply.Loot)
-            {
-                Player.Loot();
-            }
+            CurrentEvent.RunEvent(Player, Player.EventEncounterReply);
         }
 
         public List<Actor> GetDeadPlayers()
@@ -33,21 +40,47 @@ namespace HungerGamesTelegram
         }
     }
 
-    public class Event
+    public abstract class EventBase
     {
-        public string EventMessage { get; set; }
+        public abstract string EventMessage { get; }
 
-        public string[] Responses { get; set; }
+        public string[] Responses => Options.Select(x => x.Key).ToArray();
+        public abstract Dictionary<string, Action<Actor>> Options { get; }
 
-        public string RunEvent(string response)
+        public void RunEvent(Actor actor, string response)
         {
-            switch (response)
+            if (Options.ContainsKey(response))
             {
-                case "":
-                    break;
+                Options[response](actor);
             }
-
-            return "";
+            else
+            {
+                Options.First().Value(actor);
+            }
         }
+    }
+
+    public class FeralDogsEvent : EventBase
+    {
+        public override string EventMessage => "Ville hunder angriper deg!\nHva gjør du?";
+
+        public override Dictionary<string, Action<Actor>> Options { get; } = new Dictionary<string, Action<Actor>>()
+        {
+            ["Angrip"] = actor =>
+            {
+                actor.Level += 1;
+                actor.Message($"Du jagde vekk hundene **(+1 lvl)**.\nDu er level *{actor.Level}*");
+            },
+            ["Løp vekk"] = actor =>
+            {
+                actor.Message("Du slapp unna de ville hundene.");
+
+            },
+            ["Gjem deg"] = actor =>
+            {
+                actor.Message("Hundene drepte deg\nSpillet er over");
+                actor.IsDead = true;
+            },
+        };
     }
 }

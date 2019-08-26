@@ -95,14 +95,14 @@ namespace HungerGamesTelegram
         
     }
 
-    enum EncounterReply
+    public enum EncounterReply
     {
         Attack,
         Loot,
         RunAway
     }
 
-    internal interface IEncounter
+    public interface IEncounter
     {
         void Prompt();
 
