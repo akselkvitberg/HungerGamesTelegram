@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HungerGamesTelegram.Events;
 
 namespace HungerGamesTelegram
 {
@@ -58,29 +59,5 @@ namespace HungerGamesTelegram
                 Options.First().Value(actor);
             }
         }
-    }
-
-    public class FeralDogsEvent : EventBase
-    {
-        public override string EventMessage => "Ville hunder angriper deg!\nHva gjør du?";
-
-        public override Dictionary<string, Action<Actor>> Options { get; } = new Dictionary<string, Action<Actor>>()
-        {
-            ["Angrip"] = actor =>
-            {
-                actor.Level += 1;
-                actor.Message($"Du jagde vekk hundene **(+1 lvl)**.\nDu er level *{actor.Level}*");
-            },
-            ["Løp vekk"] = actor =>
-            {
-                actor.Message("Du slapp unna de ville hundene.");
-
-            },
-            ["Gjem deg"] = actor =>
-            {
-                actor.Message("Hundene drepte deg\nSpillet er over");
-                actor.IsDead = true;
-            },
-        };
     }
 }
