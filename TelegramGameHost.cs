@@ -20,15 +20,18 @@ namespace HungerGamesTelegram
 
         Game _currentGame;
 
-        private string rules = string.Join("\n",
-            new string[]{
-                "Hunger Games - Telegram",
-                "Målet med spillet er å være siste person som ikke er beseiret.",
-                "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, loot og løp vekk).",
-                "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen.",
-                ""
-            });
-
+        private string rules = string.Join("\n", 
+            "Hunger Games - Telegram", 
+            "Målet med spillet er å være siste person som ikke er beseiret.", 
+            "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, løp vekk, osv...)",
+            "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen.",
+            "", 
+            "Dersom du møter på en annen person kan du velge å angripe, være kompis, eller løpe vekk.",
+            "Hvis begge to angriper vinner den som har høyest level. Den andre er ute av spillet.",
+            "Hvis en angriper, og den andre er kompis vinner den som angriper, uansett",
+            "Hvis begge er kompis så deler dere på hva dere kan få",
+            "Og hvis du løper vekk får du ingen ting, men du er sikker på å overleve runden.",
+            "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen rundt omkring på øya.");
 
         public void Start() {
             var key = File.ReadAllText("botkey.key");
