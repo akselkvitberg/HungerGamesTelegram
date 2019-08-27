@@ -9,31 +9,6 @@ namespace HungerGamesTelegram
             game.RoundDelay = 0;
         }
 
-        public override void EncounterPrompt(Actor actor)
-        {
-            WriteLine();
-            WriteLine($"Du møter på {actor.Name}");
-            WriteLine($"Du er level {Level}");
-            WriteLine($"Hva vil du gjøre?");
-            Write("> ");
-
-            var answer = ReadLine();
-
-            EncounterAction = EncounterReply.Loot;
-            switch (answer.ToLower())
-            {
-                case "attack":
-                    EncounterAction = EncounterReply.Attack;
-                    break;
-                case "loot":
-                    EncounterAction =  EncounterReply.Loot;
-                    break;
-                case "run":
-                    EncounterAction =  EncounterReply.RunAway;
-                    break;
-            }
-        }
-
         public override void EventPrompt(string message, string[] options)
         {
             WriteLine(message);

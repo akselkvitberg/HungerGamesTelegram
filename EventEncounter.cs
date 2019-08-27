@@ -12,16 +12,26 @@ namespace HungerGamesTelegram
 
         public EventBase CurrentEvent { get; }
 
-        List<Func<EventBase>> _eventList = new List<Func<EventBase>>()
-        {
-            () => new FeralDogsEvent(),
-            () => new MeteoriteEvent(),
-        };
-
         public EventEncounter(Actor player)
         {
             Player = player;
-            CurrentEvent = _eventList[random.Next(_eventList.Count)]();
+            CurrentEvent = GetRandomEvent();
+        }
+
+        private EventBase GetRandomEvent()
+        {
+            var val = random.Next(0,101);
+            if (val < 70)
+            {
+                return new LootEvent();
+            }
+
+            if (val < 99)
+            {
+                return new NothingHappenedEvent();
+            }
+
+            return new PriceEvent();
         }
 
         public void Prompt()

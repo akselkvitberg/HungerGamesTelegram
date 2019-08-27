@@ -6,8 +6,10 @@ using static System.Console;
 
 namespace HungerGamesTelegram
 {
-    class Game 
+    public class Game 
     {
+        public string Name { get; set; }
+
         private INotificator Notificator { get; }
 
         public List<Location> Locations { get; set; }
@@ -27,6 +29,8 @@ namespace HungerGamesTelegram
         public Game(INotificator notificator)
         {
             Notificator = notificator;
+            Name = DateTime.Now.ToString("yyyy MMMM dd hhmm");
+            Logger.Log(this, "Game created");
         }
 
         public async Task StartGame() 
@@ -35,31 +39,22 @@ namespace HungerGamesTelegram
                 return;
             Started = true;
 
+            Logger.Log(this, $"Game started: {Dimension}x{Dimension} grid. {Players.Count} players:");
+
             Locations = LocationFactory.CreateLocations(Dimension);
-            
-            for (int i = 0; i < 15; i++)
+
+            for (int i = 0; i < 100; i++)
                 Players.Add(new RandomBot());
-            for (int i = 0; i < 10; i++)
-                Players.Add(new AttackBot());
-            for (int i = 0; i < 10; i++)
-                Players.Add(new LootBot());
-            for (int i = 0; i < 10; i++)
-                Players.Add(new Bot1());
-            for (int i = 0; i < 10; i++)
-                Players.Add(new Bot2());
-            for (int i = 0; i < 15; i++)
-                Players.Add(new Bot2());
-            // for (int i = 0; i < 20; i++)
-            //     Players.Add(new RunBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);
             foreach (var player in Players)
             {
+                Logger.Log(player, $"Player starting at {startLocation.Name}");
                 player.Location = startLocation;
             }
 
             Notificator.GameHasStarted();
-            
+
             int roundCount = 0;
             while (Players.Count > 1)
             {
@@ -67,11 +62,14 @@ namespace HungerGamesTelegram
                 _playersThisRound = Players.Count;
                 roundCount++;
 
+                Logger.Log(this, $"Runde {roundCount}, {Players.Count} spillere");
+
                 // Movement
                 if(Locations.Count(x=>!x.IsDeadly) > 1)
                 {
                     await DoMovements();
                 }
+
                 // Kill players that are still in the storm - they either moved into the storm, or stood still
                 KillPlayersInDeadZone();
 
@@ -95,8 +93,12 @@ namespace HungerGamesTelegram
             {
                 RemovePlayer(actor);
             }
-
+            
             Notificator.GameHasEnded(Results);
+
+            Logger.Log(this, $"Spillet er over.\n\nResultater:");
+            Logger.Log(this, string.Join("\n ", Results.Select(x=>$"{x.Rank}. {x.Name}")));
+
             Completed = true;
         }
 
@@ -141,6 +143,7 @@ namespace HungerGamesTelegram
             }
 
             Notificator.GameAreaIsReduced();
+            Logger.Log(this, "Området er redusert");
         }
 
         private async Task DoMovements()
@@ -194,11 +197,7 @@ namespace HungerGamesTelegram
             {
                 var p1 = players.Pop();
                 var p2 = players.Pop();
-                encounters.Add(new Encounter()
-                {
-                    Player1 = p1,
-                    Player2 = p2
-                });
+                encounters.Add(new Encounter(p1, p2));
             }
 
             if (players.Count == 1)
@@ -210,7 +209,7 @@ namespace HungerGamesTelegram
         }
     }
 
-    interface INotificator
+    public interface INotificator
     {
         void GameHasStarted();
 

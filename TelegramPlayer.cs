@@ -10,7 +10,7 @@ using static System.Console;
 namespace HungerGamesTelegram
 {
 
-    class TelegramPlayer : Actor
+    public class TelegramPlayer : Actor
     {
         public Game Game { get; }
         public long Id {get;}
@@ -22,12 +22,10 @@ namespace HungerGamesTelegram
             Id = id;
             _client = client;
             Name = name;
-            
         }
 
-        public event Action<TelegramPlayer> Died;
-
-        enum State {
+        enum State 
+        {
             AskForDirection,
             AskForAction,
             None,
@@ -38,6 +36,8 @@ namespace HungerGamesTelegram
 
         internal void ParseMessage(Message message)
         {
+            Logger.Log(this, $" > {message.Text}");
+
             if(IsDead || !Game.Started)
             {
                 return;
@@ -53,46 +53,22 @@ namespace HungerGamesTelegram
                     nextLocation = Location.Directions[direction];
                 }
             }
-            else 
+            else
             {
-                var answer = message.Text.ToLower();
-                switch (answer.ToLower())
-                {
-                    case "attack":
-                        EncounterAction = EncounterReply.Attack;
-                        break;
-                    case "loot":
-                        EncounterAction =  EncounterReply.Loot;
-                        break;
-                    case "run":
-                        EncounterAction =  EncounterReply.RunAway;
-                        break;
-                }
+                EventEncounterReply = message.Text;
             }
         }
 
         public void Write(params string[] message)
         {
+            Logger.Log(this, string.Join("\n", message));
             _client.SendTextMessageAsync(Id, string.Join("\n", message), ParseMode.Markdown, true, false, 0, new ReplyKeyboardRemove());
         }
 
         public void Write(IReplyMarkup markup, params string[] message)
         {
+            Logger.Log(this, string.Join("\n", message));
             _client.SendTextMessageAsync(Id, string.Join("\n", message), ParseMode.Markdown, true, false, 0, markup);
-        }
-
-        public override void EncounterPrompt(Actor actor)
-        {
-            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(new List<KeyboardButton>(){
-                new KeyboardButton("attack"),
-                new KeyboardButton("loot"),
-                new KeyboardButton("run"),
-            },true, true);
-
-            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du møter på *{actor.Name}* (lvl {actor.Level})", $"Du er level *{Level}*", "Hva vil du gjøre?");
-
-            currentstate = State.AskForAction;
-            EncounterAction = EncounterReply.Loot;
         }
 
         public override void EventPrompt(string message, string[] options)
@@ -176,9 +152,12 @@ namespace HungerGamesTelegram
         {
             Write($"*{actor.Name}* (level **{actor.Level}**) beseiret deg.", "*Du er ute av spillet.*");
             base.Die(actor);
-            if(Died != null){
-                Died(this);
-            }
+        }
+
+        public override void KillZone()
+        {
+            IsDead = true;
+            Write("Du ble tatt av stormen","Du er ute av spillet.");
         }
 
         public override void Share(Actor actor)

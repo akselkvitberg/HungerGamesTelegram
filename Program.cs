@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using static System.Console;
@@ -53,4 +54,16 @@ namespace HungerGamesTelegram
         }
     }
 
+
+    public static class Extensions {
+        static Random random = new Random();
+
+        public static T GetRandom<T>(this List<T> list){
+            return list[random.Next(list.Count)];
+        }
+
+        public static T GetRandom<T>(this T[] list){
+            return list[random.Next(list.Length)];
+        }
+    }
 }

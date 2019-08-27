@@ -4,6 +4,79 @@ using System.Threading.Tasks;
 
 namespace HungerGamesTelegram.Events
 {
+    public class NothingHappenedEvent : EventBase
+    {
+        readonly string[] messages = 
+        {
+            "Du er helt alene, ingen ting skjer.",
+            "Plutselig hører du noe... Det var ingen ting.",
+            "Det er ingen ting her bortsett fra gresshopper."
+        };
+
+        public NothingHappenedEvent()
+        {
+            EventText = messages.GetRandom();
+            Option("Ok", player => player.Message("Du går videre"));
+        }
+    }
+
+    public class LootEvent : EventBase
+    {
+        string[] messages = 
+        {
+            "Du ser {0} ligge på bakken",
+            "Du går inn i en brakke. På gulvet ligger det en {0}."
+        };
+
+        (string name, int level)[] items =
+        {
+            ("en AK47", 1),
+            ("en granat", 1),
+            ("en kniv", 1),
+            ("en skuddsikker vest", 1),
+            ("en bazooka", 1),
+        };
+
+        public LootEvent()
+        {
+            var item = items.GetRandom();
+            EventText = string.Format(messages.GetRandom(), item.name);
+
+            Option("La det ligge", player => player.Message("Du lar det ligge, og går videre"));
+
+            Option("Plukk det opp!", player => {
+                player.Level += item.level;
+                player.Message($"Du fant {item.name} (+lvl {item.level})", $"Du er level *{player.Level}*");
+            });
+        }
+    }
+
+    public class PriceEvent : EventBase 
+    {
+        static List<string> prices = new List<string>
+        {
+            "Du finner en sjokolade. Gå til Eivind Kvitberg for å få premien på Torsteinslåtta"
+        };
+
+        public PriceEvent()
+        {
+            if(prices.Count == 0)
+            {
+                EventText = "Du finner ingen ting her."; //
+                Option("Ok", player => player.Message("Du går videre"));
+                return;
+            }
+
+            EventText = prices.GetRandom();
+            prices.Remove(EventText);
+
+            Option("Kult!", player => {
+                //player.Level++;
+                player.Message("Du går videre");
+            });
+        }
+    }
+
     public class FeralDogsEvent : EventBase
     {
         public FeralDogsEvent()
@@ -56,16 +129,6 @@ namespace HungerGamesTelegram.Events
                     "Du slo meteoritten helt ut i verdensrommet! *(lvl +3)*",
                     $"Du er nå level *{player.Level}*");
             });
-        }
-    }
-
-    public class NothingHappenedEvent : EventBase
-    {
-        public NothingHappenedEvent()
-        {
-            EventText = "Du er helt alene, ingen ting skjer.";
-
-            Option("Ok", player => player.Message("Du går videre"));
         }
     }
 
@@ -148,6 +211,4 @@ namespace HungerGamesTelegram.Events
             });
         }
     }
-
-    
 }

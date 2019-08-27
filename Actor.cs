@@ -12,11 +12,7 @@ namespace HungerGamesTelegram
         public string Name { get; set; }
         public bool IsDead { get; set; }
         public int Rank { get; set; }
-        public EncounterReply EncounterAction { get; internal set; }
-
         public string EventEncounterReply { get; internal set; }
-
-        public abstract void EncounterPrompt(Actor actor);
 
         public abstract void EventPrompt(string message, string[] options);
 
@@ -82,7 +78,7 @@ namespace HungerGamesTelegram
 
         public override void EventPrompt(string message, string[] options)
         {
-            EventEncounterReply = options[random.Next(options.Length)];
+            EventEncounterReply = options.GetRandom();
         }
 
         public override void MovePrompt()
@@ -106,79 +102,12 @@ namespace HungerGamesTelegram
             
         }
     }
+
     class RandomBot : Bot
     {
-        public override void EncounterPrompt(Actor actor) 
+        public override void EventPrompt(string message, string[] options)
         {
-            if(Location.Directions.All(x=>x.Value.IsDeadly))
-            {
-                EncounterAction = (EncounterReply)random.Next(0, 2);
-            }
-            else
-            {
-                EncounterAction = (EncounterReply)random.Next(0, 3);
-            }
-        }
-    }
-
-    class AttackBot : Bot
-    {
-        public override void EncounterPrompt(Actor actor)  {EncounterAction = EncounterReply.Attack;}
-    }
-
-    class RunBot : Bot
-    {
-        public override void EncounterPrompt(Actor actor) 
-        {
-            if(Location.Directions.All(x=>x.Value.IsDeadly))
-            {
-                EncounterAction = EncounterReply.Attack;
-            }
-            else
-            {
-                EncounterAction = EncounterReply.RunAway;
-            }
-        }
-    }
-
-    class LootBot : Bot
-    {
-        public override void EncounterPrompt(Actor actor) {EncounterAction = EncounterReply.Loot;}
-    }
-
-    class Bot1 : Bot
-    {
-        public override void EncounterPrompt(Actor actor) 
-        {
-            if(Level > 5)
-            {
-                EncounterAction = EncounterReply.Attack;
-            }
-            else EncounterAction = EncounterReply.Loot;
-        }
-    }
-
-    class Bot2 : Bot
-    {
-        public override void EncounterPrompt(Actor actor) 
-        {
-            if(Level % 2 == 0)
-            {
-                EncounterAction = EncounterReply.Attack;
-            }
-            else EncounterAction = EncounterReply.Loot;
-        }
-    }
-
-        class Bot3 : Bot
-    {
-        public override void EncounterPrompt(Actor actor) 
-        {
-            if(Level < 5)
-            {
-                EncounterAction = EncounterReply.RunAway;
-            }
-            else EncounterAction = EncounterReply.Attack;
+            EventEncounterReply = options.GetRandom();
         }
     }
 }
