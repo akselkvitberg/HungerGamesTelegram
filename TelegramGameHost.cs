@@ -134,6 +134,10 @@ namespace HungerGamesTelegram
 
                     return true;
                 case "/endgame":
+                    foreach (var currentGamePlayer in _currentGame.Players)
+                    {
+                        currentGamePlayer.IsDead = true;
+                    }
                     _currentGame = null;
                     _botClient.SendTextMessageAsync(message.Chat.Id, "Stoppet. Lag et nytt spill: /newgame");
                     return true;
