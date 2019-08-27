@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using static System.Console;
 
@@ -21,9 +22,9 @@ namespace HungerGamesTelegram
 
         public bool Completed {get;set;} = false;
 
-        public int RoundDelay { get; internal set; } = 10000;
+        public int RoundDelay { get; internal set; } = 5000;
 
-        public int Dimension {get;set;} = 6;
+        public int Dimension {get;set;} = 10;
         private int _playersThisRound = 0;
 
         public Game(INotificator notificator)
@@ -43,7 +44,7 @@ namespace HungerGamesTelegram
 
             Locations = LocationFactory.CreateLocations(Dimension);
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1; i++)
                 Players.Add(new RandomBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);
@@ -125,14 +126,25 @@ namespace HungerGamesTelegram
             if(remainingTiles == 1){
                 return;
             }
-            if(remainingTiles <= 4)
+            if(remainingTiles == 4 || remainingTiles == 2)
             {
                 var location = Locations.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).First();
                 location.IsDeadly = true;
+                location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
                 Notificator.GameAreaIsReduced();
                 return;
             }
-            
+
+            if (remainingTiles == 3)
+            {
+                var location = Locations.Where(x => !x.IsDeadly).FirstOrDefault(x=>x.Directions.Count(y=>y.Value.IsDeadly) == 3);
+
+                location.IsDeadly = true;
+                location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
+                Notificator.GameAreaIsReduced();
+                return;
+            }
+
             foreach (var location in Locations.Where(x=>x.IsDeadly).ToList())
             {
                 foreach (var next in location.Directions)
@@ -143,7 +155,7 @@ namespace HungerGamesTelegram
             }
 
             Notificator.GameAreaIsReduced();
-            Logger.Log(this, "Omr�det er redusert");
+            Logger.Log(this, "Området er redusert");
         }
 
         private async Task DoMovements()
@@ -206,6 +218,41 @@ namespace HungerGamesTelegram
             }
 
             return encounters;
+        }
+
+        public string GetLocationString(Location location)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int y = 0; y < Dimension; y++)
+            {
+                for (int x = 0; x < Dimension; x++)
+                {
+                    var location1 = Locations[x + y * Dimension];
+                    if (location1 == location)
+                    {
+                        if (location1.IsDeadly)
+                        {
+                            sb.Append("⚠️");
+                        }
+                        else
+                        {
+                            sb.Append("❌");
+                        }
+                    }
+                    else if (location1.IsDeadly)
+                    {
+                        sb.Append("⬛️");
+                    }
+                    else
+                    {
+                        sb.Append("⬜️");
+                    }
+                }
+
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
         }
     }
 

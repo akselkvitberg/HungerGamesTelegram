@@ -16,6 +16,8 @@ namespace HungerGamesTelegram
         private Dictionary<long, TelegramPlayer> Players => _currentGame?.Players.OfType<TelegramPlayer>().ToDictionary(x => x.Id, x => x) ?? new Dictionary<long, TelegramPlayer>();
         readonly List<long> _playersToNotify = new List<long>();
 
+        private long adminId = 49374973; 
+
         Game _currentGame;
 
         private string rules = string.Join("\n",
@@ -25,7 +27,6 @@ namespace HungerGamesTelegram
                 "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, loot og løp vekk).",
                 "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen.",
                 ""
-                
             });
 
 
@@ -41,7 +42,7 @@ namespace HungerGamesTelegram
         {
             Console.WriteLine(e.Message.From?.FirstName + "> " + e.Message.Text);
 
-            if (e.Message.From?.Id == 49374973)
+            if (e.Message.From?.Id == adminId)
             {
                 if (HandleAdminMessage(e.Message))
                 {
@@ -91,6 +92,8 @@ namespace HungerGamesTelegram
                     TelegramPlayer player = new TelegramPlayer(_currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
                     _currentGame.Players.Add(player);
                     _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du er med i neste runde.\nRunden starter snart.");
+                    _botClient.SendTextMessageAsync(adminId, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
+                    Logger.Log(_currentGame, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
                     break;
                 }
             }
@@ -109,6 +112,8 @@ namespace HungerGamesTelegram
                         {
                             _botClient.SendTextMessageAsync(id, "En ny runde starter snart. For å bli med, send /join");
                         }
+                        _botClient.SendTextMessageAsync(message.Chat.Id, "Start spillet med /start");
+
                         _playersToNotify.Clear();
                     }
                     else
@@ -124,7 +129,7 @@ namespace HungerGamesTelegram
                     else if (!gameIsStarting)
                     {
                         GameIsStarting();
-                        Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(x => _currentGame.StartGame());
+                        Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(x => _currentGame.StartGame());
                     }
 
                     return true;

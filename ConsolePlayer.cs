@@ -54,10 +54,10 @@ namespace HungerGamesTelegram
             Move(nextLocation);
         }
 
-        public override void Loot()
+        public override void Loot(Actor player1)
         {
             WriteLine("Du fant et bedre våpen (+2 lvl)");
-            base.Loot();
+            base.Loot(player1);
         }
 
         public override void RunAway(Actor player2)

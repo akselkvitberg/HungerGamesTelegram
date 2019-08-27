@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace HungerGamesTelegram.Events
@@ -22,32 +24,53 @@ namespace HungerGamesTelegram.Events
 
     public class LootEvent : EventBase
     {
-        string[] messages = 
+        static LootEvent()
         {
-            "Du ser {0} ligge på bakken",
-            "Du går inn i en brakke. På gulvet ligger det en {0}."
-        };
+            messages = File.ReadAllLines("Events/LootEvents.csv").Skip(1).ToArray();
+            var itemlist = File.ReadAllLines("Events/items.csv").Skip(1).Select(x=>x.Split(new []{",", ";"}, StringSplitOptions.None)).ToArray();
+            foreach (var item in itemlist)
+            {
+                var name = item[0];
+                var value = int.Parse(item[1]);
+                var weight = int.Parse(item[2]);
+                items.Add((name, value, weight));
+            }
+        }
 
-        (string name, int level)[] items =
-        {
-            ("en AK47", 1),
-            ("en granat", 1),
-            ("en kniv", 1),
-            ("en skuddsikker vest", 1),
-            ("en bazooka", 1),
-        };
+        private static readonly string[] messages;
+
+        private static readonly List<(string name, int value, int weight)> items = new List<(string name, int value, int weight)>();
 
         public LootEvent()
         {
-            var item = items.GetRandom();
+            var item = GetWeightedRandomItem();
             EventText = string.Format(messages.GetRandom(), item.name);
 
             Option("La det ligge", player => player.Message("Du lar det ligge, og går videre"));
 
             Option("Plukk det opp!", player => {
-                player.Level += item.level;
-                player.Message($"Du fant {item.name} (+lvl {item.level})", $"Du er level *{player.Level}*");
+                player.Level += item.value;
+                player.Message($"Du fant {item.name} (+lvl {item.value})", $"Du er level *{player.Level}*");
             });
+        }
+
+        public static (string name, int value, int weight) GetWeightedRandomItem()
+        {
+            var totalWeight = items.Sum(x=>x.weight);
+
+            var prob = random.Next(totalWeight);
+
+            var sum = 0;
+            foreach (var item in items)
+            {
+                sum += item.weight;
+                if (prob < sum)
+                {
+                    return item;
+                }
+            }
+
+            return items.Last();
         }
     }
 
@@ -62,7 +85,7 @@ namespace HungerGamesTelegram.Events
         {
             if(prices.Count == 0)
             {
-                EventText = "Du finner ingen ting her."; //
+                EventText = "Du finner ingen ting her.";
                 Option("Ok", player => player.Message("Du går videre"));
                 return;
             }

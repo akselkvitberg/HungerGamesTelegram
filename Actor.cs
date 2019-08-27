@@ -6,7 +6,6 @@ namespace HungerGamesTelegram
 {
     public abstract class Actor
     {
-        protected static Random random = new Random();
         public Location Location { get; set; }
         public int Level { get; set; } = 1;
         public string Name { get; set; }
@@ -31,7 +30,7 @@ namespace HungerGamesTelegram
             
         }
 
-        public virtual void Loot()
+        public virtual void Loot(Actor player1)
         {
             Level += 2;
         }

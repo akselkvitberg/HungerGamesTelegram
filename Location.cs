@@ -90,14 +90,12 @@ namespace HungerGamesTelegram
                 "graven",
             };
 
-            Random r = new Random();
-
             List<string> placeNames = new List<string>();
 
-            while(placeNames.Count != 12*12)
+            while(placeNames.Count != dimension*dimension)
             {
-                var s = sub[r.Next(sub.Length)];
-                var a = adj[r.Next(adj.Length)];
+                var s = sub.GetRandom();
+                var a = adj.GetRandom();
                 var txt = a + s;
                 if(placeNames.Contains(txt))
                 {
@@ -125,32 +123,39 @@ namespace HungerGamesTelegram
             locations[dimension/2, dimension/2].IsStartingPoint = true;
 
             locations[0, 0].IsDeadly = true;
-            locations[0, 0].Environment = "En forferdelig tornado river i stykker alt i nærheten.";
+            locations[0, 0].Environment = "En dødlig storm.";
 
             locations[0,dimension-1].IsDeadly = true;
-            locations[0,dimension-1].Environment = "En voldsom skogbrann fortærer alt.";
+            locations[0,dimension-1].Environment = "En voldsom skogbrann.";
 
             locations[dimension-1, dimension-1].IsDeadly=true;
-            locations[dimension-1, dimension-1].Environment = "Øya blir rivd i filler av store bølger og forsvinner i havet.";
+            locations[dimension-1, dimension-1].Environment = "Giftig gass.";
 
             locations[dimension-1, 0].IsDeadly = true;
-            locations[dimension-1, 0].Environment = "Lava flommer opp fra bakken og dekker alt sammen.";
+            locations[dimension-1, 0].Environment = "Flytende lava.";
 
             for (int y = 0; y < dimension; y++)
             {
                 for (int x = 0; x < dimension; x++)
                 {
-                    if(x != 0) {
-                        locations[x,y].Directions.Add("vest",locations[x-1,y]);
+                    
+                    if(y != 0)
+                    {
+                        locations[x,y].Directions.Add("Nord", locations[x,y-1]);
                     }
-                    if(y != 0) {
-                        locations[x,y].Directions.Add("nord", locations[x,y-1]);
+
+                    if (x != 0)
+                    {
+                        locations[x, y].Directions.Add("Vest", locations[x - 1, y]);
                     }
-                    if(x != dimension-1) {
-                        locations[x,y].Directions.Add("øst",locations[x+1,y]);
+
+                    if(x != dimension-1)
+                    {
+                        locations[x,y].Directions.Add("Øst",locations[x+1,y]);
                     }
-                    if(y != dimension-1) {
-                        locations[x,y].Directions.Add("sør", locations[x,y+1]);
+                    if(y != dimension-1)
+                    {
+                        locations[x,y].Directions.Add("Sør", locations[x,y+1]);
                     }
                 }
             }

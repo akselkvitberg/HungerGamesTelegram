@@ -12,10 +12,10 @@ namespace HungerGamesTelegram
         {
             WriteLine("Hunger Games");
 
-            //var telegramGameHost = new TelegramGameHost();
-            //telegramGameHost.Start();
+            var telegramGameHost = new TelegramGameHost();
+            telegramGameHost.Start();
 
-            //Thread.Sleep(int.MaxValue);
+            Thread.Sleep(int.MaxValue);
 
             Game game = new Game(new ConsoleNotificator());
             while (true)

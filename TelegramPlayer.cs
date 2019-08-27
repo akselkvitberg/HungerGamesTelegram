@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HungerGamesTelegram.Events;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -47,7 +48,7 @@ namespace HungerGamesTelegram
                 return;
             }
             if(currentstate == State.AskForDirection){
-                var direction = message.Text.ToLower();
+                var direction = message.Text;
                 if(Location.Directions.ContainsKey(direction))
                 {
                     nextLocation = Location.Directions[direction];
@@ -75,10 +76,10 @@ namespace HungerGamesTelegram
         {
             currentstate = State.AskForEvent;
 
-            List<KeyboardButton> optionButtons = new List<KeyboardButton>();
+            List<List<KeyboardButton>> optionButtons = new List<List<KeyboardButton>>();
             foreach (var option in options)
             {
-                optionButtons.Add(new KeyboardButton(option));
+                optionButtons.Add(new List<KeyboardButton> {new KeyboardButton(option)});
             }
 
             ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(optionButtons);
@@ -88,20 +89,58 @@ namespace HungerGamesTelegram
 
         public override void MovePrompt()
         {
-            List<KeyboardButton> directions = new List<KeyboardButton>();
             List<string> locations = new List<string>();
             foreach (var location in Location.Directions)
             {
-                if(!location.Value.IsDeadly)
-                {
-                    directions.Add(new KeyboardButton($"{location.Key}"));
-                }
-                locations.Add($"*{location.Key}*: {location.Value.Name}" + (location.Value.IsDeadly ? " (Storm)" : ""));
+                locations.Add($"*{location.Key}*: {location.Value.Name}" + (location.Value.IsDeadly ? $" ({location.Value.Environment})" : ""));
             }
 
-            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
 
-            Write(keyboard, $"Du er her: *{Location.Name}*", string.Join("\n", locations), "Hvor vil du gå?");
+            var north = Location.Directions.ContainsKey("Nord") && !Location.Directions["Nord"].IsDeadly;
+            var west = Location.Directions.ContainsKey("Vest") && !Location.Directions["Vest"].IsDeadly;
+            var east = Location.Directions.ContainsKey("Øst") && !Location.Directions["Øst"].IsDeadly;
+            var south = Location.Directions.ContainsKey("Sør") && !Location.Directions["Sør"].IsDeadly;
+            var directions = new List<List<KeyboardButton>>
+            {
+                new List<KeyboardButton>()
+                {
+                    new KeyboardButton(" "),
+                    new KeyboardButton(north ? "Nord" : " "),
+                    new KeyboardButton(" "),
+                },
+                new List<KeyboardButton>()
+                {
+                    new KeyboardButton(west ? "Vest" : " "),
+                    new KeyboardButton("Bli her"),
+                    new KeyboardButton(east ? "Øst" : " "),
+                },
+                new List<KeyboardButton>()
+                {
+                    new KeyboardButton(" "),
+                    new KeyboardButton(south ? "Sør" : " "),
+                    new KeyboardButton(" "),
+                }
+            };
+
+            ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(directions, false, false);
+            
+
+            if (Location.IsDeadly)
+            {
+                Write(keyboard, $"Du er her: *{Location.Name}*",
+                    Game.GetLocationString(Location),
+                    Location.Environment,
+                    "*Du må flytte på deg, ellers dør du!*",
+                    string.Join("\n", locations),
+                    "Hvor vil du gå?");
+            }
+            else
+            {
+                Write(keyboard, $"Du er her: *{Location.Name}*",
+                    Game.GetLocationString(Location),
+                    string.Join("\n", locations),
+                    "Hvor vil du gå?");
+            }
             
             nextLocation = null;
             currentstate = State.AskForDirection;
@@ -123,10 +162,11 @@ namespace HungerGamesTelegram
             Write(string.Join("\n", message));
         }
 
-        public override void Loot()
+        public override void Loot(Actor player1)
         {
-            base.Loot();
-            Write("Du fant et bedre våpen **(+2 lvl)**", $"Du er level *{Level}*");
+            base.Loot(player1);
+            var item = LootEvent.GetWeightedRandomItem();
+            Write($"{player1.Name} stakk av.", $"Du fant {item.name} **(+{item.value+1} lvl)**", $"Du er level *{Level}*");
         }
 
         public override void RunAway(Actor player2)
@@ -139,13 +179,15 @@ namespace HungerGamesTelegram
         public override void FailAttack(Actor actor)
         {
             base.FailAttack(actor);
-            Write($"{actor.Name} løp vekk.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
+            var item = LootEvent.GetWeightedRandomItem();
+            Write($"{actor.Name} løp vekk.", $"Du fant {item.name} **(+{item.value} lvl)**", $"Du er level *{Level}*");
         }
 
         public override void SuccessAttack(Actor actor)
         {
             base.SuccessAttack(actor);
-            Write($"Du beseiret *{actor.Name}*.", $"Du fant et bedre våpen **(+1 lvl)**", $"Du er level *{Level}*");
+            var item = LootEvent.GetWeightedRandomItem();
+            Write($"Du beseiret *{actor.Name}*.", $"Du fant {item.name} **(+{item.value} lvl)**", $"Du er level *{Level}*");
         }
 
         public override void Die(Actor actor)
@@ -157,7 +199,7 @@ namespace HungerGamesTelegram
         public override void KillZone()
         {
             IsDead = true;
-            Write("Du ble tatt av stormen","Du er ute av spillet.");
+            Write($"Du ble tatt av {Location.Environment}","Du er ute av spillet.");
         }
 
         public override void Share(Actor actor)
