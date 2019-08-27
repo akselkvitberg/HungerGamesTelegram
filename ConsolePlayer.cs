@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using static System.Console;
 
@@ -6,7 +7,7 @@ namespace HungerGamesTelegram
     class ConsolePlayer : Actor
     {
         public ConsolePlayer(Game game) {
-            game.RoundDelay = 0;
+            game.RoundDelay = TimeSpan.Zero;
         }
 
         public override void EventPrompt(string message, string[] options)

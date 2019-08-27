@@ -11,7 +11,7 @@ namespace HungerGamesTelegram
         public string Name { get; set; }
         public bool IsDead { get; set; }
         public int Rank { get; set; }
-        public string EventEncounterReply { get; internal set; }
+        public string EventEncounterReply { get; internal set; } = "";
 
         public abstract void EventPrompt(string message, string[] options);
 

@@ -22,9 +22,10 @@ namespace HungerGamesTelegram
 
         public bool Completed {get;set;} = false;
 
-        public int RoundDelay { get; internal set; } = 5000;
+        public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromSeconds(15);
 
-        public int Dimension {get;set;} = 10;
+        public int Dimension {get;set;} = 6;
+
         private int _playersThisRound = 0;
 
         public Game(INotificator notificator)
@@ -44,7 +45,7 @@ namespace HungerGamesTelegram
 
             Locations = LocationFactory.CreateLocations(Dimension);
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 20; i++)
                 Players.Add(new RandomBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);

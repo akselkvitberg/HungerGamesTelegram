@@ -56,7 +56,7 @@ namespace HungerGamesTelegram
             }
             else
             {
-                EventEncounterReply = message.Text;
+                EventEncounterReply = message.Text ?? "";
             }
         }
 
