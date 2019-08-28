@@ -23,6 +23,8 @@ namespace HungerGamesTelegram
             Id = id;
             _client = client;
             Name = name;
+
+            Level = 5;
         }
 
         enum State 
@@ -127,7 +129,9 @@ namespace HungerGamesTelegram
 
             if (Location.IsDeadly)
             {
-                Write(keyboard, $"Du er her: *{Location.Name}*",
+                Write(keyboard,
+                    $"*Dag {Game.Round}",
+                    $"Du er her: *{Location.Name}*",
                     Game.GetLocationString(Location),
                     Location.Environment,
                     "*Du må flytte på deg, ellers dør du!*",

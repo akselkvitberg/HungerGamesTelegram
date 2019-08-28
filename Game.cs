@@ -25,6 +25,7 @@ namespace HungerGamesTelegram
         public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromSeconds(15);
 
         public int Dimension {get;set;} = 6;
+        public int Round { get; private set; }
 
         private int _playersThisRound = 0;
 
@@ -57,14 +58,14 @@ namespace HungerGamesTelegram
 
             Notificator.GameHasStarted();
 
-            int roundCount = 0;
+            Round = 0;
             while (Players.Count > 1)
             {
                 // Round start
                 _playersThisRound = Players.Count;
-                roundCount++;
+                Round++;
 
-                Logger.Log(this, $"Runde {roundCount}, {Players.Count} spillere");
+                Logger.Log(this, $"Runde {Round}, {Players.Count} spillere");
 
                 // Movement
                 if(Locations.Count(x=>!x.IsDeadly) > 1)
@@ -79,10 +80,10 @@ namespace HungerGamesTelegram
                 await DoEncountersAsync();
 
                 // Round end
-                Notificator.RoundHasEnded(roundCount);
+                Notificator.RoundHasEnded(Round);
 
                 // Limit play area every 3 rounds
-                if(roundCount % 3 == 0)
+                if(Round % 3 == 0)
                 {
                     await Task.Delay(1000);
                     LimitPlayArea();

@@ -96,7 +96,7 @@ namespace HungerGamesTelegram
             {
                 var s = sub.GetRandom();
                 var a = adj.GetRandom();
-                var txt = a + s;
+                var txt = $"{a}-{s}";
                 if(placeNames.Contains(txt))
                 {
                     continue;
