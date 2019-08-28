@@ -13,11 +13,12 @@ namespace HungerGamesTelegram
             foreach (var buddyMessage in buddyMessages)
             {
                 var value = int.Parse(buddyMessage[1]);
-                buddyRewards.Add((buddyMessage[0], value));
+                var weight = int.Parse(buddyMessage[2]);
+                buddyRewards.Add((buddyMessage[0], value, weight));
             }
         }
 
-        static readonly List<(string text, int value)> buddyRewards = new List<(string text, int value)>();
+        static readonly List<(string text, int value, int weight)> buddyRewards = new List<(string text, int value, int weight)>();
 
         public Actor Player1 { get; }
         public Actor Player2 { get; }
@@ -119,7 +120,7 @@ namespace HungerGamesTelegram
 
         private void ShareEvent()
         {
-            var reward = buddyRewards.GetRandom();
+            var reward = GetWeightedRandomMessage();
 
             Player1.Level += reward.value;
             var message1 = reward.text + $"\nDu er level ({Player1.Level})";
@@ -128,6 +129,25 @@ namespace HungerGamesTelegram
             Player2.Level += reward.value;
             var message2 = reward.text + $"\nDu er level ({Player1.Level})";
             Player2.Message(message2);
+        }
+
+        public static (string text, int value, int weight) GetWeightedRandomMessage()
+        {
+            var totalWeight = buddyRewards.Sum(x => x.weight);
+
+            var prob = Extensions.Random.Next(totalWeight);
+
+            var sum = 0;
+            foreach (var item in buddyRewards)
+            {
+                sum += item.weight;
+                if (prob < sum)
+                {
+                    return item;
+                }
+            }
+
+            return buddyRewards.Last();
         }
 
         public List<Actor> GetDeadPlayers()

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HungerGamesTelegram.Events;
 using static System.Console;
 
 namespace HungerGamesTelegram
@@ -10,6 +11,10 @@ namespace HungerGamesTelegram
     {
         static async Task Main(string[] args)
         {
+            NothingHappenedEvent.GetWeightedRandomMessage();
+            LootEvent.GetWeightedRandomItem();
+            Encounter.GetWeightedRandomMessage();
+
             WriteLine("Hunger Games");
 
             var telegramGameHost = new TelegramGameHost();
@@ -56,14 +61,14 @@ namespace HungerGamesTelegram
 
 
     public static class Extensions {
-        static Random random = new Random();
+        public static Random Random { get; }= new Random();
 
         public static T GetRandom<T>(this List<T> list){
-            return list[random.Next(list.Count)];
+            return list[Random.Next(list.Count)];
         }
 
         public static T GetRandom<T>(this T[] list){
-            return list[random.Next(list.Length)];
+            return list[Random.Next(list.Length)];
         }
     }
 }

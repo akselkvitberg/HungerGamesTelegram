@@ -58,6 +58,60 @@ namespace HungerGamesTelegram.Events
         }
     }
 
+    public class ChoiceEvent : EventBase
+    {
+        static ChoiceEvent()
+        {
+            var list = File.ReadAllLines("Events/ChoiceEvent.csv").Skip(1).Select(x => x.Split(new[] { "\t" }, StringSplitOptions.None)).ToArray();
+
+            foreach (var item in list)
+            {
+                var text = item[0];
+                var value = int.Parse(item[1] ?? "0");
+                var weight = int.Parse(item[2] ?? "0");
+                messages.Add((text, value, weight));
+            }
+        }
+
+        static readonly List<(string text, int value, int weight)> messages = new List<(string text, int value, int weight)>();
+
+        public ChoiceEvent()
+        {
+            var item = GetWeightedRandomMessage();
+            EventText = item.text;
+
+            Option("Ok", player => {
+                    if (item.value == 0)
+                    {
+                        player.Message("Du går videre.");
+                        return;
+                    }
+                    player.Level += item.value;
+                    player.Message($"Du er nå level *{player.Level}*.");
+                }
+            );
+        }
+
+        public static (string text, int value, int weight) GetWeightedRandomMessage()
+        {
+            var totalWeight = messages.Sum(x => x.weight);
+
+            var prob = random.Next(totalWeight);
+
+            var sum = 0;
+            foreach (var item in messages)
+            {
+                sum += item.weight;
+                if (prob < sum)
+                {
+                    return item;
+                }
+            }
+
+            return messages.Last();
+        }
+    }
+
     public class LootEvent : EventBase
     {
         static LootEvent()
