@@ -31,7 +31,17 @@ namespace HungerGamesTelegram
             "Hvis en angriper, og den andre er kompis vinner den som angriper, uansett",
             "Hvis begge er kompis så deler dere på hva dere kan få",
             "Og hvis du løper vekk får du ingen ting, men du er sikker på å overleve runden.",
+            "Og hvis du er kompis, men den andre løper vekk får du to ting.",
             "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen rundt omkring på øya.");
+
+        private string _welcomeMessage = string.Join("\n",
+            "Hunger Games - Telegram",
+            "",
+            "For å se reglene, send /regler",
+            "For å bli med på neste runde, send /join",
+            "Hvis spillet ikke har startet kan du sende /notify for å få beskjed om når det starter"
+            );
+
 
         public void Start() {
             var key = File.ReadAllText("botkey.key");
@@ -53,6 +63,11 @@ namespace HungerGamesTelegram
                 }
             }
 
+            if (e.Message.Text == "/start")
+            {
+                _botClient.SendTextMessageAsync(e.Message.Chat.Id, _welcomeMessage);
+            }
+
             if(e.Message.Text == "/regler")
             {
                 _botClient.SendTextMessageAsync(e.Message.Chat.Id, rules);
@@ -68,7 +83,7 @@ namespace HungerGamesTelegram
             switch (e.Message.Text)
             {
                 case "/notify":
-                    if (_currentGame != null)
+                    if (_currentGame?.Started == false)
                     {
                         _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i start-fasen. For å bli med på neste runde, send /join");
                     }
@@ -95,7 +110,10 @@ namespace HungerGamesTelegram
                     TelegramPlayer player = new TelegramPlayer(_currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
                     _currentGame.Players.Add(player);
                     _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du er med i neste runde.\nRunden starter snart.");
-                    _botClient.SendTextMessageAsync(adminId, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
+                    foreach (var actor in _currentGame.Players.OfType<TelegramPlayer>())
+                    {
+                        _botClient.SendTextMessageAsync(actor.Id, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
+                    }
                     Logger.Log(_currentGame, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
                     break;
                 }

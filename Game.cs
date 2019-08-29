@@ -22,9 +22,9 @@ namespace HungerGamesTelegram
 
         public bool Completed {get;set;} = false;
 
-        public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromSeconds(15);
+        public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromSeconds(10);
 
-        public int Dimension {get;set;} = 6;
+        public int Dimension {get;set;} = 4;
         public int Round { get; private set; }
 
         private int _playersThisRound = 0;
@@ -91,6 +91,8 @@ namespace HungerGamesTelegram
                 
                 await Task.Delay(2000);
             }
+
+            _playersThisRound = Players.Count;
 
             foreach (var actor in Players.ToList())
             {

@@ -21,12 +21,12 @@ namespace HungerGamesTelegram
         private EventBase GetRandomEvent()
         {
             var val = random.Next(0,101);
-            if (val < 70)
+            if (val < 60)
             {
                 return new LootEvent();
             }
 
-            if (val < 99)
+            if (val < 99 || PriceEvent.prices.Count == 0)
             {
                 return new NothingHappenedEvent();
             }

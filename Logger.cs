@@ -14,7 +14,7 @@ namespace HungerGamesTelegram
                 {
                     EnsureFolder(Path.Combine("log", player.Game.Name));
 
-                    File.AppendAllText(Path.Combine("log", player.Game.Name, "eventlog.txt"), line + "\n");
+                    File.AppendAllText(Path.Combine("log", player.Game.Name, "eventlog.txt"), player.Name + " - " + line + "\n");
                     File.AppendAllText(Path.Combine("log", player.Game.Name, player.Name + ".txt"), line + "\n");
                 }
                 catch (Exception e)

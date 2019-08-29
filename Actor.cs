@@ -15,14 +15,8 @@ namespace HungerGamesTelegram
 
         public abstract void EventPrompt(string message, string[] options);
 
-        public virtual void Share(Actor actor)
-        {
-            Level += 1;
-        }
-
         public virtual void FailAttack(Actor actor)
         {
-            Level += 1;
         }
 
         public virtual void RunAway(Actor player2)
@@ -32,12 +26,10 @@ namespace HungerGamesTelegram
 
         public virtual void Loot(Actor player1)
         {
-            Level += 2;
         }
 
         public virtual void SuccessAttack(Actor actor)
         {
-            Level += 1;
         }
 
         public virtual void Die(Actor actor)

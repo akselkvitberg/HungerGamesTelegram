@@ -86,7 +86,7 @@ namespace HungerGamesTelegram
 
             ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup(optionButtons);
 
-            Write(keyboard, $"Du er her: *{Location.Name}*", $"Du er level *{Level}*", message);
+            Write(keyboard, $"Du er ved *{Location.Name}*", $"Du er level *{Level}*", message);
         }
 
         public override void MovePrompt()
@@ -130,8 +130,7 @@ namespace HungerGamesTelegram
             if (Location.IsDeadly)
             {
                 Write(keyboard,
-                    $"*Dag {Game.Round}",
-                    $"Du er her: *{Location.Name}*",
+                    $"Du er ved *{Location.Name}*",
                     Game.GetLocationString(Location),
                     Location.Environment,
                     "*Du må flytte på deg, ellers dør du!*",
@@ -140,7 +139,7 @@ namespace HungerGamesTelegram
             }
             else
             {
-                Write(keyboard, $"Du er her: *{Location.Name}*",
+                Write(keyboard, $"Du er ved *{Location.Name}*",
                     Game.GetLocationString(Location),
                     string.Join("\n", locations),
                     "Hvor vil du gå?");
@@ -168,30 +167,29 @@ namespace HungerGamesTelegram
 
         public override void Loot(Actor player1)
         {
-            base.Loot(player1);
-            var item = LootEvent.GetWeightedRandomItem();
-            Write($"{player1.Name} stakk av.", $"Du fant {item.name} **(+{item.value+1} lvl)**", $"Du er level *{Level}*");
+            var item1 = LootEvent.GetWeightedRandomItem();
+            var item2 = LootEvent.GetWeightedRandomItem();
+            Level += item1.value + item2.value;
+            Write($"{player1.Name} ville ikke være kompis og stakk av.", $"Du fant {item1.name} **({(item1.value+1):+0;-#} level)** og {item2.name} **({(item2.value + 1):+0;-#} level)** istedet.", $"Du er level *{Level}*");
         }
 
         public override void RunAway(Actor player2)
         {
             Write($"Du løp vekk fra *{player2.Name}*");
-
-            base.RunAway(player2);
         }
 
         public override void FailAttack(Actor actor)
         {
-            base.FailAttack(actor);
             var item = LootEvent.GetWeightedRandomItem();
-            Write($"{actor.Name} løp vekk.", $"Du fant {item.name} **(+{item.value} lvl)**", $"Du er level *{Level}*");
+            Level += item.value;
+            Write($"{actor.Name} løp vekk.", $"Du fant {item.name} **({item.value:+0;-#} level)**", $"Du er level *{Level}*");
         }
 
         public override void SuccessAttack(Actor actor)
         {
-            base.SuccessAttack(actor);
             var item = LootEvent.GetWeightedRandomItem();
-            Write($"Du beseiret *{actor.Name}*.", $"Du fant {item.name} **(+{item.value} lvl)**", $"Du er level *{Level}*");
+            Level += item.value + 2;
+            Write($"Du beseiret *{actor.Name}* (+2 level).", $"Du fant {item.name} **({item.value:+0;-#} level)**", $"Du er level *{Level}*");
         }
 
         public override void Die(Actor actor)
@@ -204,12 +202,6 @@ namespace HungerGamesTelegram
         {
             IsDead = true;
             Write($"Du ble tatt av {Location.Environment}","Du er ute av spillet.");
-        }
-
-        public override void Share(Actor actor)
-        {
-            base.Share(actor);
-            Write($"Du og *{actor.Name}* delte på godene **(+1 lvl)**", $"Du er level *{Level}*");
         }
     }
 }

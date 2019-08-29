@@ -104,11 +104,5 @@ namespace HungerGamesTelegram
                 WriteLine(s);
             }
         }
-
-        public override void Share(Actor actor)
-        {
-            WriteLine($"Du og {actor.Name} delte på godene (+1 lvl)");
-            base.Share(actor);
-        }
     }
 }

@@ -58,6 +58,97 @@ namespace HungerGamesTelegram.Events
         }
     }
 
+    
+
+    public class LootEvent : EventBase
+    {
+        static LootEvent()
+        {
+            messages = File.ReadAllLines("Events/LootEvents.csv").Skip(1).ToArray();
+            var itemlist = File.ReadAllLines("Events/items.csv").Skip(1).Select(x=>x.Split(new []{"\t"}, StringSplitOptions.None)).ToArray();
+            foreach (var item in itemlist)
+            {
+                var name = item[0];
+                var value = int.Parse(item[1]);
+                var weight = int.Parse(item[2]);
+                items.Add((name, value, weight));
+            }
+        }
+
+        private static readonly string[] messages;
+
+        private static readonly List<(string name, int value, int weight)> items = new List<(string name, int value, int weight)>();
+
+        public LootEvent()
+        {
+            var item = GetWeightedRandomItem();
+            EventText = string.Format(messages.GetRandom(), item.name);
+
+            Option("La det ligge", player => player.Message("Du lar det ligge, og går videre"));
+
+            Option("Plukk opp!", player => {
+                player.Level += item.value;
+                player.Message($"Du fant {item.name} ({item.value:+0;-#} level)", $"Du er level *{player.Level}*");
+            });
+        }
+
+        public static (string name, int value, int weight) GetWeightedRandomItem()
+        {
+            var totalWeight = items.Sum(x=>x.weight);
+
+            var prob = random.Next(totalWeight);
+
+            var sum = 0;
+            foreach (var item in items)
+            {
+                sum += item.weight;
+                if (prob < sum)
+                {
+                    return item;
+                }
+            }
+
+            return items.Last();
+        }
+    }
+
+    public class PriceEvent : EventBase 
+    {
+        public static List<string> prices = new List<string>
+        {
+            "Du finner en kupong for en sjokolade.",
+            "Du finner en kupong for en sjokolade.",
+            "Du finner en kupong for en kald Cola!",
+            "Du finner en kupong for en kald Cola!",
+            "Du finner en kupong for en pose godterier!",
+            "Du finner en kupong for en pose godterier!",
+        };
+
+        public PriceEvent()
+        {
+            if(prices.Count == 0)
+            {
+                EventText = "Du finner ingen ting her.";
+                Option("Ok", player => player.Message("Du går videre"));
+                return;
+            }
+
+            EventText = prices.GetRandom();
+            prices.Remove(EventText);
+
+            Option("Kult!", player => {
+                //player.Level++;
+                player.Message("Du går videre");
+            });
+        }
+    }
+
+
+
+
+
+
+
     public class ChoiceEvent : EventBase
     {
         static ChoiceEvent()
@@ -111,85 +202,6 @@ namespace HungerGamesTelegram.Events
             return messages.Last();
         }
     }
-
-    public class LootEvent : EventBase
-    {
-        static LootEvent()
-        {
-            messages = File.ReadAllLines("Events/LootEvents.csv").Skip(1).ToArray();
-            var itemlist = File.ReadAllLines("Events/items.csv").Skip(1).Select(x=>x.Split(new []{"\t"}, StringSplitOptions.None)).ToArray();
-            foreach (var item in itemlist)
-            {
-                var name = item[0];
-                var value = int.Parse(item[1]);
-                var weight = int.Parse(item[2]);
-                items.Add((name, value, weight));
-            }
-        }
-
-        private static readonly string[] messages;
-
-        private static readonly List<(string name, int value, int weight)> items = new List<(string name, int value, int weight)>();
-
-        public LootEvent()
-        {
-            var item = GetWeightedRandomItem();
-            EventText = string.Format(messages.GetRandom(), item.name);
-
-            Option("La det ligge", player => player.Message("Du lar det ligge, og går videre"));
-
-            Option("Plukk det opp!", player => {
-                player.Level += item.value;
-                player.Message($"Du fant {item.name} (+lvl {item.value})", $"Du er level *{player.Level}*");
-            });
-        }
-
-        public static (string name, int value, int weight) GetWeightedRandomItem()
-        {
-            var totalWeight = items.Sum(x=>x.weight);
-
-            var prob = random.Next(totalWeight);
-
-            var sum = 0;
-            foreach (var item in items)
-            {
-                sum += item.weight;
-                if (prob < sum)
-                {
-                    return item;
-                }
-            }
-
-            return items.Last();
-        }
-    }
-
-    public class PriceEvent : EventBase 
-    {
-        static List<string> prices = new List<string>
-        {
-            "Du finner en sjokolade. Gå til Eivind Kvitberg for å få premien på Torsteinslåtta"
-        };
-
-        public PriceEvent()
-        {
-            if(prices.Count == 0)
-            {
-                EventText = "Du finner ingen ting her.";
-                Option("Ok", player => player.Message("Du går videre"));
-                return;
-            }
-
-            EventText = prices.GetRandom();
-            prices.Remove(EventText);
-
-            Option("Kult!", player => {
-                //player.Level++;
-                player.Message("Du går videre");
-            });
-        }
-    }
-
     public class FeralDogsEvent : EventBase
     {
         public FeralDogsEvent()
@@ -208,7 +220,7 @@ namespace HungerGamesTelegram.Events
             {
                 player.Level += 1;
                 player.Message(
-                    "Du jagde vekk hundene **(+1 lvl)**.",
+                    "Du jagde vekk hundene **(1 level)**.",
                     $"Du er level *{player.Level}*"
                     );
             });
