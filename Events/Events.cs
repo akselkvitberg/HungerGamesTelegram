@@ -138,7 +138,7 @@ namespace HungerGamesTelegram.Events
 
             Option("Kult!", player => {
                 //player.Level++;
-                player.Message("Du går videre");
+                player.Message("Du går videre, i bedre humør enn før.");
             });
         }
     }
