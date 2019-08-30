@@ -21,18 +21,22 @@ namespace HungerGamesTelegram
         Game _currentGame;
 
         private string rules = string.Join("\n", 
-            "Hunger Games - Telegram", 
-            "Målet med spillet er å være siste person som ikke er beseiret.", 
-            "Hver runde består av to valg: Flytting (nord, syd, ...), og handling (angrip, løp vekk, osv...)",
-            "Kartet er 12x12 ruter til å begynne med, men reduseres i størrelse helt til det bare er en rute igjen.",
+            "*Hunger Games - Telegram*", 
+            "Målet med spillet er å være *siste person som ikke er beseiret*.", 
+            "Hver runde består av to valg: *Flytting* (nord, syd, ...), og *handling* (angrip, løp vekk, osv...)",
+            "Du har *3 minutter* på deg på å gjøre hvert handling.",
+            "Kartet er 12x12 ruter til å begynne med, men *reduseres i størrelse* helt til det bare er *en rute igjen*.",
+            "Er du inne i en 'død' sone etter å ha gjennomført *Flytting* er du ute av spillet.",
             "", 
-            "Dersom du møter på en annen person kan du velge å angripe, være kompis, eller løpe vekk.",
-            "Hvis begge to angriper vinner den som har høyest level. Den andre er ute av spillet.",
-            "Hvis en angriper, og den andre er kompis vinner den som angriper, uansett",
-            "Hvis begge er kompis så deler dere på hva dere kan få",
-            "Og hvis du løper vekk får du ingen ting, men du er sikker på å overleve runden.",
+            "Dersom du møter på en annen person kan du velge å *angripe, være kompis, eller løpe vekk.*",
+            "Hvis begge to angriper er det *en som vinner*, og *en som taper*. Den som taper er *ute av spillet.*",
+            "*Levelen* din avgjør hvor *sannsynlig* det er at du vinner over en motspiller. Har dere lik level er det *50% sjangs for å vinne*.",
+            //"Hvis begge to angriper vinner den som har høyest level. Den andre er ute av spillet.",
+            "Hvis en *angriper*, og den andre er *kompis* vinner den som angriper, *uansett*",
+            "Hvis begge er kompis så går begge opp i level.",
+            "Hvis du løper vekk får du *ingen ting*, men du er sikker på å overleve runden.",
             "Og hvis du er kompis, men den andre løper vekk får du to ting.",
-            "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen rundt omkring på øya.");
+            "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen or andre ting rundt omkring på øya.");
 
         private string _welcomeMessage = string.Join("\n",
             "Hunger Games - Telegram",
@@ -70,7 +74,7 @@ namespace HungerGamesTelegram
 
             if(e.Message.Text == "/regler")
             {
-                _botClient.SendTextMessageAsync(e.Message.Chat.Id, rules);
+                _botClient.SendTextMessageAsync(e.Message.Chat.Id, rules, parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
             }
 
             
@@ -85,7 +89,7 @@ namespace HungerGamesTelegram
                 case "/notify":
                     if (_currentGame?.Started == false)
                     {
-                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i start-fasen. For å bli med på neste runde, send /join");
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i påmeldings-fasen. For å bli med, send /join");
                     }
                     else
                     {
@@ -150,7 +154,7 @@ namespace HungerGamesTelegram
                     else if (!gameIsStarting)
                     {
                         GameIsStarting();
-                        Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(x => _currentGame.StartGame());
+                        Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(x => _currentGame.StartGame());
                     }
 
                     return true;

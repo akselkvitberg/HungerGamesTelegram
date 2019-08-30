@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,8 +27,8 @@ namespace HungerGamesTelegram
         private readonly Dictionary<string, EncounterReply> options = new Dictionary<string, EncounterReply>()
         {
             ["Angrip"] = EncounterReply.Attack,
-            ["Vær kompis"] = EncounterReply.Loot,
-            ["Løp vekk"] = EncounterReply.RunAway,
+            ["VÃ¦r kompis"] = EncounterReply.Loot,
+            ["LÃ¸p vekk"] = EncounterReply.RunAway,
         };
 
         private string[] Options => options.Select(x => x.Key).ToArray();
@@ -48,13 +48,13 @@ namespace HungerGamesTelegram
         {
             if (_limitOptions)
             {
-                Player1.EventPrompt($"Du møter på *{Player2.Name}* (lvl {Player2.Level})\nDere er trengt opp i et hjørne!\nANGRIP!", new[] { "Angrip" });
-                Player2.EventPrompt($"Du møter på *{Player1.Name}* (lvl {Player1.Level})\nDere er trengt opp i et hjørne!\nANGRIP!", new[] { "Angrip" });
+                Player1.EventPrompt($"Du mÃ¸ter pÃ¥ *{Player2.Name}* (lvl {Player2.Level})\nDere er trengt opp i et hjÃ¸rne!\nANGRIP!", new[] { "Angrip" });
+                Player2.EventPrompt($"Du mÃ¸ter pÃ¥ *{Player1.Name}* (lvl {Player1.Level})\nDere er trengt opp i et hjÃ¸rne!\nANGRIP!", new[] { "Angrip" });
             }
             else
             {
-                Player1.EventPrompt($"Du møter på *{Player2.Name}* (lvl {Player2.Level})\nHva vil du gjøre?", Options);
-                Player2.EventPrompt($"Du møter på *{Player1.Name}* (lvl {Player1.Level})\nHva vil du gjøre?", Options);
+                Player1.EventPrompt($"Du mÃ¸ter pÃ¥ *{Player2.Name}* (lvl {Player2.Level})\nHva vil du gjÃ¸re?", Options);
+                Player2.EventPrompt($"Du mÃ¸ter pÃ¥ *{Player1.Name}* (lvl {Player1.Level})\nHva vil du gjÃ¸re?", Options);
             }
         }
 
@@ -169,20 +169,9 @@ namespace HungerGamesTelegram
 
         private void ResolveAttack(Actor player1, Actor player2)
         {
-            if (player1.Level == player2.Level)
-            {
-                if (Random.NextDouble() > 0.5)
-                {
-                    player1.SuccessAttack(player2);
-                    player2.Die(player1);
-                }
-                else
-                {
-                    player1.Die(player2);
-                    player2.SuccessAttack(player1);
-                }
-            }
-            else if (player1.Level > player2.Level)
+            var diff = 0.5 - ((player1.Level - player2.Level) / 7.0);
+            
+            if(Extensions.Random.NextDouble() > diff)
             {
                 player1.SuccessAttack(player2);
                 player2.Die(player1);

@@ -24,7 +24,7 @@ namespace HungerGamesTelegram
             _client = client;
             Name = name;
 
-            Level = 5;
+            Level = 1;
         }
 
         enum State 

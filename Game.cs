@@ -22,9 +22,9 @@ namespace HungerGamesTelegram
 
         public bool Completed {get;set;} = false;
 
-        public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromSeconds(10);
+        public TimeSpan RoundDelay { get; internal set; } = TimeSpan.FromMinutes(3);
 
-        public int Dimension {get;set;} = 4;
+        public int Dimension {get;set;} = 12;
         public int Round { get; private set; }
 
         private int _playersThisRound = 0;
@@ -46,8 +46,8 @@ namespace HungerGamesTelegram
 
             Locations = LocationFactory.CreateLocations(Dimension);
 
-            for (int i = 0; i < 20; i++)
-                Players.Add(new RandomBot());
+            // for (int i = 0; i < 20; i++)
+            //     Players.Add(new RandomBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);
             foreach (var player in Players)
@@ -89,7 +89,7 @@ namespace HungerGamesTelegram
                     LimitPlayArea();
                 }
                 
-                await Task.Delay(2000);
+                await Task.Delay(TimeSpan.FromSeconds(10));
             }
 
             _playersThisRound = Players.Count;
