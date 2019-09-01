@@ -47,7 +47,8 @@ namespace HungerGamesTelegram
             }
             if(_currentState == State.AskForDirection){
                 var direction = message.Text;
-                if(Location.Directions.ContainsKey(direction))
+                
+                if(direction != null && Location.Directions.ContainsKey(direction))
                 {
                     nextLocation = Location.Directions[direction];
                 }
