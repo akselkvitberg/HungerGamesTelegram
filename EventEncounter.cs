@@ -26,12 +26,12 @@ namespace HungerGamesTelegram
                 return new LootEvent();
             }
 
-            if (val < 99 || PriceEvent.prices.Count == 0)
+            //if (val < 99 || PriceEvent.prices.Count == 0)
             {
                 return new NothingHappenedEvent();
             }
 
-            return new PriceEvent();
+            //return new PriceEvent();
         }
 
         public void Prompt()

@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using HungerGamesTelegram.Events;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Console;
 
 namespace HungerGamesTelegram
 {
@@ -30,12 +27,11 @@ namespace HungerGamesTelegram
         enum State 
         {
             AskForDirection,
-            AskForAction,
             None,
             AskForEvent
         }
 
-        State currentstate = State.None;
+        private State _currentState = State.None;
 
         internal void ParseMessage(Message message)
         {
@@ -46,10 +42,10 @@ namespace HungerGamesTelegram
                 return;
             }
 
-            if(currentstate == State.None){
+            if(_currentState == State.None){
                 return;
             }
-            if(currentstate == State.AskForDirection){
+            if(_currentState == State.AskForDirection){
                 var direction = message.Text;
                 if(Location.Directions.ContainsKey(direction))
                 {
@@ -76,7 +72,7 @@ namespace HungerGamesTelegram
 
         public override void EventPrompt(string message, string[] options)
         {
-            currentstate = State.AskForEvent;
+            _currentState = State.AskForEvent;
 
             List<List<KeyboardButton>> optionButtons = new List<List<KeyboardButton>>();
             foreach (var option in options)
@@ -146,7 +142,7 @@ namespace HungerGamesTelegram
             }
             
             nextLocation = null;
-            currentstate = State.AskForDirection;
+            _currentState = State.AskForDirection;
         }
 
         Location nextLocation;
@@ -194,7 +190,7 @@ namespace HungerGamesTelegram
 
         public override void Die(Actor actor)
         {
-            Write($"*{actor.Name}* (level **{actor.Level}**) beseiret deg.", "*Du er ute av spillet.*");
+            Write($"*{actor.Name}* beseiret deg.", "*Du er ute av spillet.*");
             base.Die(actor);
         }
 

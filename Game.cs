@@ -27,7 +27,7 @@ namespace HungerGamesTelegram
         public int Dimension {get;set;} = 12;
         public int Round { get; private set; }
 
-        private int _playersThisRound = 0;
+        public int PlayersThisRound { get; private set; }= 0;
 
         public Game(INotificator notificator)
         {
@@ -62,13 +62,13 @@ namespace HungerGamesTelegram
             while (Players.Count > 1)
             {
                 // Round start
-                _playersThisRound = Players.Count;
+                PlayersThisRound = Players.Count;
                 Round++;
 
                 Logger.Log(this, $"Runde {Round}, {Players.Count} spillere");
 
                 // Movement
-                if(Locations.Count(x=>!x.IsDeadly) > 1)
+                //if(Locations.Count(x=>!x.IsDeadly) > 1)
                 {
                     await DoMovements();
                 }
@@ -92,7 +92,7 @@ namespace HungerGamesTelegram
                 await Task.Delay(TimeSpan.FromSeconds(10));
             }
 
-            _playersThisRound = Players.Count;
+            PlayersThisRound = Players.Count;
 
             foreach (var actor in Players.ToList())
             {
@@ -120,8 +120,8 @@ namespace HungerGamesTelegram
         {
             Players.Remove(player);
             Results.Add(player);
-            player.Rank = _playersThisRound;
-            player.Result(_playersThisRound);
+            player.Rank = PlayersThisRound;
+            player.Result(PlayersThisRound);
         }
 
         private void LimitPlayArea()
@@ -196,6 +196,12 @@ namespace HungerGamesTelegram
             foreach (var encounter in encounters)
             {
                 encounter.RunEncounter();
+            }
+            
+            PlayersThisRound = Players.Count(x=>!x.IsDead);
+
+            foreach (var encounter in encounters)
+            {
                 foreach (var player in encounter.GetDeadPlayers())
                 {
                     RemovePlayer(player);
@@ -249,7 +255,8 @@ namespace HungerGamesTelegram
                     }
                     else
                     {
-                        sb.Append("⬜️");
+                        sb.Append(GetEmoji(location1.Players.Count));
+                        //sb.Append("⬜️");
                     }
                 }
 
@@ -257,6 +264,35 @@ namespace HungerGamesTelegram
             }
 
             return sb.ToString();
+        }
+
+        private string GetEmoji(int playersCount)
+        {
+            switch (playersCount)
+            {
+                case 0:
+                    return "⬜️";
+                case 1:
+                    return "1️⃣";
+                case 2:
+                    return "2️⃣";
+                case 3:
+                    return "3️⃣";
+                case 4:
+                    return "4️⃣";
+                case 5:
+                    return "5️⃣";
+                case 6:
+                    return "6️⃣";
+                case 7:
+                    return "7️⃣";
+                case 8:
+                    return "8️⃣";
+                case 9:
+                    return "9️⃣";
+                default:
+                    return "🔟";
+            }
         }
     }
 

@@ -53,8 +53,13 @@ namespace HungerGamesTelegram
             }
             else
             {
-                Player1.EventPrompt($"Du møter på *{Player2.Name}* (lvl {Player2.Level})\nHva vil du gjøre?", Options);
-                Player2.EventPrompt($"Du møter på *{Player1.Name}* (lvl {Player1.Level})\nHva vil du gjøre?", Options);
+                string attackPercentage1 = GetWinChance(Player1.Level, Player2.Level);
+                string runPercentage1 = GetWinChance(Player2.Level, Player1.Level);
+                string attackPercentage2 = GetRunAwayChance(Player1.Level, Player2.Level);
+                string runPercentage2 = GetRunAwayChance(Player2.Level, Player1.Level);
+
+                Player1.EventPrompt($"Du møter på *{Player2.Name}* (lvl {Player2.Level})\nHva vil du gjøre?\nAngrip: {attackPercentage1}%\nLøp vekk {runPercentage1}%", Options);
+                Player2.EventPrompt($"Du møter på *{Player1.Name}* (lvl {Player1.Level})\nHva vil du gjøre?\nAngrip: {attackPercentage2}%\nLøp vekk {runPercentage2}%", Options);
             }
         }
 
@@ -80,8 +85,6 @@ namespace HungerGamesTelegram
                     break;
 
                 case (EncounterReply.Loot, EncounterReply.Loot):
-                    //Player1.Share(Player2);
-                    //Player2.Share(Player1);
                     ShareEvent();
                     break;
                 case (EncounterReply.RunAway, EncounterReply.RunAway):
@@ -90,12 +93,10 @@ namespace HungerGamesTelegram
                     break;
 
                 case (EncounterReply.RunAway, EncounterReply.Attack):
-                    Player1.RunAway(Player2);
-                    Player2.FailAttack(Player1);
+                    ResolveAttackRunAway(attack:Player2, runAway:Player1);
                     break;
                 case (EncounterReply.Attack, EncounterReply.RunAway):
-                    Player1.FailAttack(Player2);
-                    Player2.RunAway(Player1);
+                    ResolveAttackRunAway(Player1, Player2);
                     break;
 
                 case (EncounterReply.RunAway, EncounterReply.Loot):
@@ -165,12 +166,18 @@ namespace HungerGamesTelegram
             return deadPlayers;
         }
 
-        private static readonly Random Random = new Random();
+
+        public string GetWinChance(int player1Level, int player2Level)
+        {
+            var diff = (0.5 - ((player1Level - player2Level) / 10.0)) * 100;
+            diff = Math.Min(100, Math.Max(0, diff));
+            return Math.Floor(diff).ToString();
+        }
 
         private void ResolveAttack(Actor player1, Actor player2)
         {
-            var diff = 0.5 - ((player1.Level - player2.Level) / 7.0);
-            
+            var diff = 0.5 - ((player1.Level - player2.Level) / 10.0);
+
             if(Extensions.Random.NextDouble() > diff)
             {
                 player1.SuccessAttack(player2);
@@ -180,6 +187,29 @@ namespace HungerGamesTelegram
             {
                 player1.Die(player2);
                 player2.SuccessAttack(player1);
+            }
+        }
+
+        public string GetRunAwayChance(int attackLevel, int runAwayLevel)
+        {
+            var diff = (1 - ((runAwayLevel - attackLevel) / 10.0)) * 100;
+            diff = Math.Min(100, Math.Max(0, diff));
+            return Math.Floor(diff).ToString();
+        }
+
+        private void ResolveAttackRunAway(Actor attack, Actor runAway)
+        {
+            var diff = (attack.Level - runAway.Level) / 10.0;
+
+            if (Extensions.Random.NextDouble() > diff)
+            {
+                attack.FailAttack(runAway);
+                runAway.RunAway(attack);
+            }
+            else
+            {
+                attack.SuccessAttack(runAway);
+                runAway.Die(attack);
             }
         }
     }
