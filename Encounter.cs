@@ -54,8 +54,8 @@ namespace HungerGamesTelegram
             else
             {
                 string attackPercentage1 = GetWinChance(Player1.Level, Player2.Level);
-                string runPercentage1 = GetWinChance(Player2.Level, Player1.Level);
-                string attackPercentage2 = GetRunAwayChance(Player1.Level, Player2.Level);
+                string runPercentage1 = GetRunAwayChance(Player1.Level, Player2.Level);
+                string attackPercentage2 = GetRunAwayChance(Player2.Level, Player1.Level);
                 string runPercentage2 = GetRunAwayChance(Player2.Level, Player1.Level);
 
                 Player1.EventPrompt($"Du møter på *{Player2.Name}* (lvl {Player2.Level})\nHva vil du gjøre?\nAngrip: {attackPercentage1}%\nLøp vekk {runPercentage1}%", Options);

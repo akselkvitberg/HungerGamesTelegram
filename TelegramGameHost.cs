@@ -22,12 +22,12 @@ namespace HungerGamesTelegram
 
         Game _currentGame;
 
-        private string rules = string.Join("\n",
+        private string rules => string.Join("\n",
             "*Hunger Games - Telegram*",
             "Målet med spillet er å være *siste person som ikke er beseiret*.",
             "Hver runde består av to valg: *Flytting* (nord, syd, ...), og *handling* (angrip, løp vekk, osv...)",
-            "Du har *3 minutter* på deg på å gjøre hvert handling.",
-            "Kartet er 12x12 ruter til å begynne med, men *reduseres i størrelse* helt til det bare er *en rute igjen*.",
+            $"Du har *{_currentGame?.RoundDelay.TotalSeconds ?? 100} sekunder* på deg på å gjøre hvert handling.",
+            $"Kartet er {_currentGame?.Dimension ?? 12}x{_currentGame?.Dimension ?? 12} ruter til å begynne med, men *reduseres i størrelse* helt til det bare er *en rute igjen*.",
             "Er du inne i en 'død' sone etter å ha gjennomført *Flytting* er du ute av spillet.",
             "",
             "Dersom du møter på en annen person kan du velge å *angripe, være kompis, eller løpe vekk.*",
@@ -40,7 +40,7 @@ namespace HungerGamesTelegram
             "Og hvis du er kompis, men den andre løper vekk får du to ting.",
             "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen or andre ting rundt omkring på øya.",
             "",
-            "Bli med i telegramgruppa for botten: https://t.me/joinchat/AvFm_RXBScXCKgz78UKmGg");
+            "Bli med i telegramgruppa for botten: [ https://t.me/joinchat/AvFm_RXBScXCKgz78UKmGg ]");
 
         private string _welcomeMessage = string.Join("\n",
             "Hunger Games - Telegram",
@@ -49,9 +49,8 @@ namespace HungerGamesTelegram
             "For å bli med på neste runde, send /join",
             "Hvis spillet ikke har startet kan du sende /notify for å få beskjed om når det starter",
             "",
-            "Bli med i telegramgruppa for botten: https://t.me/joinchat/AvFm_RXBScXCKgz78UKmGg"
+            "Bli med i telegramgruppa for botten: [ https://t.me/joinchat/AvFm_RXBScXCKgz78UKmGg ]"
             );
-
 
         public void Start() {
             var key = File.ReadAllText("botkey.key");
@@ -217,6 +216,7 @@ namespace HungerGamesTelegram
                         {
                             _currentGame.RoundDelay = TimeSpan.FromSeconds(time);
                             _botClient.SendTextMessageAsync(adminId, $"Rundetid er: {_currentGame.RoundDelay.TotalSeconds}s");
+                            return true;
                         }
                         _botClient.SendTextMessageAsync(adminId, $"Kunne ikke parse tid");
 
