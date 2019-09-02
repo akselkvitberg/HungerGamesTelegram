@@ -46,8 +46,8 @@ namespace HungerGamesTelegram
 
             Locations = LocationFactory.CreateLocations(Dimension);
 
-            for (int i = 0; i < 20; i++)
-                Players.Add(new RandomBot());
+            //for (int i = 0; i < 20; i++)
+            //    Players.Add(new RandomBot());
 
             var startLocation = Locations.First(x=>x.IsStartingPoint);
             foreach (var player in Players)
@@ -82,11 +82,22 @@ namespace HungerGamesTelegram
                 // Round end
                 Notificator.RoundHasEnded(Round);
 
-                // Limit play area every 3 rounds
-                if(Round % 3 == 0)
+                // Limit play area every n rounds
+
+                int n = 3;
+                if (PlayersThisRound <= 15)
                 {
-                    await Task.Delay(1000);
-                    LimitPlayArea();
+                    n = 2;
+                }
+
+                if (PlayersThisRound <= 7)
+                {
+                    n = 1;
+                }
+
+                if(Round % n == 0)
+                {
+                    await LimitPlayArea();
                 }
                 
                 await Task.Delay(TimeSpan.FromSeconds(10));
@@ -124,18 +135,26 @@ namespace HungerGamesTelegram
             player.Result(PlayersThisRound);
         }
 
-        private void LimitPlayArea()
+        private async Task LimitPlayArea()
         {
             var remainingTiles = Locations.Count(x=>!x.IsDeadly);
-            if(remainingTiles == 1){
+            if(remainingTiles == 1)
+            {
                 return;
             }
+
+            await Task.Delay(1000);
+
             if(remainingTiles == 4 || remainingTiles == 2)
             {
-                var location = Locations.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).First();
-                location.IsDeadly = true;
-                location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
-                Notificator.GameAreaIsReduced();
+                var location = Locations.Where(x=>!x.IsDeadly).OrderBy(x=>Guid.NewGuid()).FirstOrDefault();
+                if (location != null)
+                {
+                    location.IsDeadly = true;
+                    location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
+                    Notificator.GameAreaIsReduced();
+                }
+                
                 return;
             }
 
@@ -143,9 +162,13 @@ namespace HungerGamesTelegram
             {
                 var location = Locations.Where(x => !x.IsDeadly).FirstOrDefault(x=>x.Directions.Count(y=>y.Value.IsDeadly) == 3);
 
-                location.IsDeadly = true;
-                location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
-                Notificator.GameAreaIsReduced();
+                if (location != null)
+                {
+                    location.IsDeadly = true;
+                    location.Environment = location.Directions.FirstOrDefault(x => x.Value.IsDeadly).Value.Environment;
+                    Notificator.GameAreaIsReduced();
+                }
+
                 return;
             }
 
@@ -190,15 +213,15 @@ namespace HungerGamesTelegram
             {
                 encounter.Prompt();
             }
-            
+
             await Task.Delay(RoundDelay);
 
             foreach (var encounter in encounters)
             {
                 encounter.RunEncounter();
             }
-            
-            PlayersThisRound = Players.Count(x=>!x.IsDead);
+
+            PlayersThisRound = Players.Count(x=>!x.IsDead) + 1;
 
             foreach (var encounter in encounters)
             {
@@ -255,8 +278,7 @@ namespace HungerGamesTelegram
                     }
                     else
                     {
-                        sb.Append(GetEmoji(location1.Players.Count));
-                        //sb.Append("⬜️");
+                        sb.Append(GetEmoji(location1.Players.Count(actor=>!actor.IsDead)));
                     }
                 }
 

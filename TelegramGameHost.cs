@@ -16,7 +16,7 @@ namespace HungerGamesTelegram
         private ITelegramBotClient _botClient;
 
         private Dictionary<long, TelegramPlayer> Players => _currentGame?.Players.OfType<TelegramPlayer>().ToDictionary(x => x.Id, x => x) ?? new Dictionary<long, TelegramPlayer>();
-        readonly List<long> _playersToNotify = new List<long>();
+        readonly HashSet<long> _playersToNotify = new HashSet<long>();
 
         private long adminId = 49374973;
 
@@ -52,11 +52,33 @@ namespace HungerGamesTelegram
             "Bli med i telegramgruppa for botten: [ https://t.me/joinchat/AvFm_RXBScXCKgz78UKmGg ]"
             );
 
-        public void Start() {
+        public void Start()
+        {
+            if (File.Exists("playersToNotify.txt"))
+            {
+                try
+                {
+                    var lines = File.ReadAllLines("playersToNotify.txt").Select(x =>
+                    {
+                        if (long.TryParse(x, out var id))
+                            return (long?) id;
+                        return null;
+                    });
+                    foreach (var line in lines.Where(x => x.HasValue).Cast<long>())
+                    {
+                        _playersToNotify.Add(line);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+
             var key = File.ReadAllText("botkey.key");
             _botClient = new TelegramBotClient(key);
             _botClient.OnMessage += Bot_OnMessage;
-            
+
             _botClient.StartReceiving();
         }
 
@@ -88,17 +110,17 @@ namespace HungerGamesTelegram
                 _botClient.SendTextMessageAsync(e.Message.Chat.Id, _welcomeMessage);
             }
 
-            if(e.Message.Text == "/regler")
+            if (e.Message.Text == "/regler")
             {
                 _botClient.SendTextMessageAsync(e.Message.Chat.Id, rules, parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
             }
 
-            if(e.Message.Text == "/status")
+            if (e.Message.Text == "/status")
             {
                 GetStatus(e.Message.Chat.Id);
             }
 
-            
+
             if (Players.ContainsKey(e.Message.Chat.Id))
             {
                 Players[e.Message.Chat.Id].ParseMessage(e.Message);
@@ -115,33 +137,46 @@ namespace HungerGamesTelegram
                     else
                     {
                         _playersToNotify.Add(e.Message.Chat.Id);
+                        SavePlayersToNotify();
                         _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du vil få beskjed før neste runde starter");
                     }
                     break;
                 case "/join":
-                {
-                    if(_currentGame == null)
                     {
-                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet har ikke startet. For å få beskjed når en ny runde starter, send /notify");
-                        return;
-                    }
-                    if(_currentGame.Started)
-                    {
-                        // already started, please wait
-                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent. For å få beskjed når en ny runde starter, send /notify");
-                        return;
-                    }
+                        if (_currentGame == null)
+                        {
+                            _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet har ikke startet. For å få beskjed når en ny runde starter, send /notify");
+                            return;
+                        }
+                        if (_currentGame.Started)
+                        {
+                            // already started, please wait
+                            _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Spillet er allerede i gang. Vennligst vent. For å få beskjed når en ny runde starter, send /notify");
+                            return;
+                        }
 
-                    TelegramPlayer player = new TelegramPlayer(_currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
-                    _currentGame.Players.Add(player);
-                    _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du er med i neste runde.\nRunden starter snart.");
-                    foreach (var actor in _currentGame.Players.OfType<TelegramPlayer>())
-                    {
-                        _botClient.SendTextMessageAsync(actor.Id, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
+                        TelegramPlayer player = new TelegramPlayer(_currentGame, e.Message.Chat.Id, _botClient, $"{e.Message.From?.FirstName} {e.Message.From?.LastName}");
+                        _currentGame.Players.Add(player);
+                        _botClient.SendTextMessageAsync(e.Message.Chat.Id, "Du er med i neste runde.\nRunden starter snart.");
+                        foreach (var actor in _currentGame.Players.OfType<TelegramPlayer>())
+                        {
+                            _botClient.SendTextMessageAsync(actor.Id, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere", disableNotification:true);
+                        }
+                        Logger.Log(_currentGame, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
+                        break;
                     }
-                    Logger.Log(_currentGame, $"{player.Name} ble med.\n{_currentGame.Players.Count} spillere");
-                    break;
-                }
+            }
+        }
+
+        private void SavePlayersToNotify()
+        {
+            try
+            {
+                File.WriteAllLines("playersToNotify.txt", _playersToNotify.Select(x=>x.ToString()));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
         }
 
@@ -151,6 +186,15 @@ namespace HungerGamesTelegram
             if (Players.ContainsKey(chatId))
             {
                 player = Players[chatId];
+            }
+
+            if (player == null)
+            {
+                var shortStatus = string.Join("\n",
+                    $"Aktive spillere: *{_currentGame.PlayersThisRound}*",
+                    _currentGame.GetLocationString(player.Location));
+                _botClient.SendTextMessageAsync(chatId, shortStatus, ParseMode.Markdown);
+                return;
             }
 
             var status = string.Join("\n",
@@ -262,7 +306,7 @@ namespace HungerGamesTelegram
         {
             foreach (var player in Players)
             {
-                if(!player.Value.IsDead)
+                if (!player.Value.IsDead)
                 {
                     _botClient.SendTextMessageAsync(player.Key, "Området er redusert", replyMarkup: new ReplyKeyboardRemove());
                 }
