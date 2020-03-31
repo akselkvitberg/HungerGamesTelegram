@@ -6,8 +6,8 @@ namespace HungerGamesTelegram
 {
     class ConsolePlayer : Actor
     {
-        public ConsolePlayer(Game game) {
-            game.RoundDelay = TimeSpan.Zero;
+        public ConsolePlayer() {
+            //game.RoundDelay = TimeSpan.Zero;
         }
 
         public override void EventPrompt(string message, string[] options)

@@ -35,7 +35,6 @@ namespace HungerGamesTelegram
             "*Levelen* din avgjør hvor *sannsynlig* det er at du vinner over en motspiller. Har dere lik level er det *50% sjangs for å vinne*.",
             "Hvis en *angriper*, og den andre er *kompis* vinner den som angriper, *uansett*",
             "Hvis begge er kompis så går begge opp i level.",
-            //"Hvis du løper vekk får du *ingen ting*, men du er sikker på å overleve runden.",
             "Hvis du løper vekk har du en prosentvis sjangse til å overleve, og du får ingen ting",
             "Og hvis du er kompis, men den andre løper vekk får du to ting.",
             "Du går opp i level ved å angripe og vinne, ved å være kompis, og ved å finne våpen or andre ting rundt omkring på øya.",
